@@ -1,0 +1,6 @@
+# _config.yml
+
+title: "Baptiste Henin – Portfolio"
+description: "Personal projects in Data Science"
+exclude:
+  - .nojekyll
