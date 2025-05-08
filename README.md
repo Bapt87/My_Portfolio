@@ -25,9 +25,9 @@ This website presents:
 
 ## 🛠️ Stack used to build my Portfolio
 
-- HTML / CSS / JavaScript
+- HTML / CSS 
 - Jupyter Notebook
-- GitHub Pages (hébergement)
+- GitHub Pages (hosting)
 
 ---
 
