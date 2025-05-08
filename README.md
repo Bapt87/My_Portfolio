@@ -7,8 +7,7 @@ This website presents:
 - My growing interest in Data Science
 - A selection of personal projects
 
-🔗 Access the online portfolio: [baptistehenin.github.io](https://baptistehenin.github.io)
-
+🔗 Access the online portfolio: [here](https://bapt87.github.io/My_Portfolio/)
 ---
 
 ## 📊 Projects
@@ -33,5 +32,5 @@ This website presents:
 ---
 
 Thank you for visiting !  
-If you're a recruiter, don't hesitate to contact me via [LinkedIn](https://www.linkedin.com/in/baptiste-henin or via my Neoma e-mail address baptiste.henin.23@neoma-bs.com
-"# baptistehenin.github.io" 
+If you're a recruiter, don't hesitate to contact me via [LinkedIn](https://www.linkedin.com/in/baptiste-henin)
+or via my Neoma e-mail address baptiste.henin.23@neoma-bs.com
