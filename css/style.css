@@ -14,8 +14,8 @@
   
   /* === HEADER === */
   header {
-    background-color: #f9f5ee; /* beige doux */
-    padding: 20px 40px 40px;
+    background-color: #f1f1f1; /* gris très clair */
+    padding: 20px 40px 0px;
   }
   
   /* === NAVIGATION BAR === */
@@ -113,11 +113,11 @@
   .header-photo {
     margin-top: 0px;
     margin-right: 40px;
+    margin-bottom: 40px;
   }
-  
   .header-photo img {
     max-width: auto;
-    max-height: auto;
+    max-height: 650px;
     width: 600px;
     /*height: auto;
     border-radius: 12px;*/
@@ -185,6 +185,24 @@
     line-height: 1.6;
     color: #333;
   }
+
+.illustrated-paragraph {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+  margin-bottom: 40px;
+}
+
+.text-left {
+  flex: 1;
+}
+
+.illustration-right img {
+  width: 300px;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
   
 /* === FOOTER === */
 footer {
