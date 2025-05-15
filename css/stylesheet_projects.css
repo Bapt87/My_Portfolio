@@ -1,0 +1,117 @@
+/* === GLOBAL === */
+body.whole-body {
+  background-color: #f2f2f2;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.project-container {
+  max-width: 1000px;
+  margin: 40px auto;
+  background-color: white;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+  overflow: hidden; /* Ajout pour que le header et main s'unissent sans décalage */
+}
+
+/* === HEADER === */
+.header-context {
+  text-align: center;
+  background-color: white;
+  padding: 30px 40px 10px 40px;
+  border-bottom: 1px solid #ddd;
+}
+
+.header-title {
+  font-size: 2.2rem;
+  color: #1e3a5f;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.header-text p {
+  font-size: 1.1rem;
+  color: #333;
+  max-width: 600px;
+  margin: 0 auto 20px auto;
+  line-height: 1.6;
+}
+
+.header-image img {
+  max-width: 400px;
+  height: auto;
+  margin-top: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* === MAIN === */
+main {
+  padding: 40px;
+  background-color: white;
+}
+
+/* === ARTICLE STRUCTURE === */
+.corps-article {
+  margin-top: 10px;
+}
+
+.secondary-title {
+  font-size: 1.5rem;
+  color: #2c3e50;
+  margin-top: 40px;
+  margin-bottom: 15px;
+  border-bottom: 2px solid #1e3a5f;
+  padding-bottom: 6px;
+}
+
+.inside-text p,
+.inside-text ul {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.inside-text ul {
+  padding-left: 20px;
+}
+
+/* === CODE BLOCKS === */
+.code-block {
+  background-color: #f4f4f4;
+  border-left: 5px solid #1e3a5f;
+  padding: 15px;
+  margin: 20px 0;
+  overflow-x: auto;
+  border-radius: 5px;
+}
+
+.code-block code {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.95rem;
+  color: #111;
+}
+
+/* === IMAGE BLOCK === */
+.inside-image {
+  text-align: center;
+  margin: 30px 0;
+}
+
+.inside-image img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* === BOTTOM THANK YOU === */
+.bottom-article {
+  text-align: center;
+  margin-top: 60px;
+  font-style: italic;
+  color: #555;
+  font-size: 1rem;
+}

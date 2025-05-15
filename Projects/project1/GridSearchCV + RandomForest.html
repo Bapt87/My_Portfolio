@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <link rel="stylesheet" href="../../css/stylesheet_projects.css">
+    <title>Project: Modeling a Random Forest Model on a Regression Problem</title>
+</head>
+<body class="whole-body">
+    <div class="project-container">
+        <header class="header-context">
+            <h1 class="header-title">Project: Modeling a Random Forest Model on a Regression Problem</h1>
+            <div class="header-text">
+                <p>
+                    In this article, I want to simulate a problem of Time Series Regression. 
+                    I will use a Random Forest model helped with GridSearchCV to automate the search of the most optimized parameters for my model.
+                    The complete code is available on a Jupyter Notebook <a href="GridSearchCV + RandomForest.ipynb">here</a>.
+                </p>
+            </div>
+            <div class="header-image">
+                <img src="../../annex/annex_project1/Illustration_top_article.png" alt="article illustration image">
+            </div>
+        </header>
+        <main>
+            <div class="corps-article">
+                <h2 class="secondary-title">Import librairies</h2>
+                <div class="inside-text">
+                    <p>
+                        For my projects, I am going to use the scikit-learn package and most importantly RandomForestRegressor and GridSearchCV from this package.
+                    </p>
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+    import numpy as np
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    from seaborn import color_palette
+    from sklearn.datasets import make_regression
+    from sklearn.model_selection import train_test_split, TimeSeriesSplit, GridSearchCV
+    from sklearn.ensemble import RandomForestRegressor
+    from sklearn.metrics import mean_absolute_error, r2_score
+
+    color_pal = color_palette()
+                    </code></pre>
+                </div>
+                <h2 class="secondary-title">Creating the problem of Regression</h2>
+                <div class="inside-text">
+                    <p>
+                        Firstly, I use make_regression to simulate a problem of regression.
+                        I chose to get a dataset of 1000 lines and 30 features which are hoing to help me train my model. 
+                    </p>
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+    X, y = make_regression(
+        n_samples = 1000,
+        n_features = 30,
+        n_targets = 1,
+        noise = 8.0,
+        random_state = 926
+    )
+                    </code></pre>
+                </div>
+                <div class="inside-text">
+                    <p>
+                        I then transformed this problem into a Time Series problem by creating DataFrames with a DatetimeIndex. 
+                    </p>
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+    X = pd.DataFrame(data = X, columns=[f"feature {i}" for i in range(1, 31)], index = pd.date_range(start="2020-01-01", periods=1000, freq="D"))
+    y = pd.DataFrame(data = y, columns=["Target"], index=pd.date_range(start="2020-01-01", periods=1000, freq="D"))
+                    </code></pre>
+                </div>
+                <h2 class="secondary-title">Train / Test split </h2>
+                <div class="code-block">
+                    <pre><code class="language-python">
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
+                    </code></pre>
+                </div>
+                <div class="inside-text">
+                    <p>This part allows me to split my dataset into tow parts : </p>
+                    <ul>
+                        <li>Train part, which aim is to serve as training data for the model.</li>
+                        <li>Test part, which aim is to test the efficiency of our model.</li>
+                    </ul>
+                    <p>
+                        X_train will be the dataset where the features are stored for the train part. 
+                        X_test will be where the features are stored for the test part. 
+                        y_train is a DataFrame with the target series for the train part
+                        and y_test is where the target series is stored fro the test part. 
+                    </p>
+                </div>
+                <h2 class="secondary-title">Searching for the best parameters for the RandomForest</h2>
+                <div class="inside-text">
+                    <p>In the following part, I established a param_grid with three parameters I want to optimize : n_estimators, max_depth and ccp_alpha</p>
+                        <ul>
+                            <li>n_estimators act as number of trees in the forest.</li>
+                            <li>max_depth represent the depth of each tree. The deeper the tree, the more complex and precise the model, but the greater the risk of overfitting.</li>
+                            <li>ccp_alpha represents the cost-complexity prunning in the model. It is a method used to reduce the complexity of decision trees in the random forest in order to limit overfitting.</li>
+                        </ul>
+                    <p>
+                        I also created the model with basic parameters like bootstrap set to True to enable better diversity in the forest. The random seed is also fixed using random_state. n_jobs is set to -1 to maximise the computational time of the computer by using all of the CPUs.
+                        Next step is to run the GridSearchCV with the fit() method for the model created and with the parameters we want to test. 
+                    </p>    
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+    #parameters we are going to test
+    param_grid = {
+        "n_estimators": [100, 150, 200, 300],
+        "max_depth": [ 2, 4, 6, 8],
+        "ccp_alpha": [0, 0.1, 0.01]
+    }
+
+    #our RandomForest model
+    model = RandomForestRegressor(
+        criterion = "squared_error", #default parameter
+        bootstrap = True, #default parameter
+        n_jobs = -1,
+        random_state = 926,
+    )
+
+    tscv = TimeSeriesSplit(n_splits=4)
+
+    #GridSearchCV function to test all parameters and choose the best of them.
+    grid_search = GridSearchCV(
+        estimator = model,
+        param_grid = param_grid,
+        scoring = "neg_mean_absolute_percentage_error",
+        n_jobs = -1,
+        cv = tscv
+    )
+
+    grid_search.fit(X_train, y_train.to_numpy().ravel())
+                    </code></pre>
+                </div>
+                <div class="inside-text">
+                    <p>By running grid_search.best_params_ I obtain the following dictionnary :</p>
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+    {'ccp_alpha': 0.1, 'max_depth': 8, 'n_estimators': 100}
+                    </code></pre>
+                </div>
+                <h2 class="secondary-title">Model training and performance evaluating</h2>
+                <div class="inside-text">
+                    <p>As I obtained the best parameters among those I tried with, I will now apply these parameters to my model and fit this model on the train part of my dataset.
+                    Then, by using the predict() method on the model on X_test, I get the forecasts for the test phase, which I write down y_pred. 
+                    After this, I calculate some performance metrics to evaluate my model.</p>
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+    #Implementing the optimized parameters in the model
+    model.set_params(
+        n_estimators = grid_search.best_params_["n_estimators"],
+        max_depth = grid_search.best_params_["max_depth"],
+        ccp_alpha = grid_search.best_params_["ccp_alpha"]
+    )
+
+    #Train the model
+    model.fit(X_train, y_train.to_numpy().ravel())
+    #Make the prediction
+    y_pred = model.predict(X_test)
+
+    mae = mean_absolute_error(y_test, y_pred)
+    r2_score = r2_score(y_test, y_pred)
+    print(f"MAE: {mae:,.2f}")
+    print(f"r2_score: {r2_score:.2f}")
+                    </code></pre>
+                </div>
+                <div class="inside-text">
+                    <p>The MAE gives me an idea of the average unit error of the model for each point whereas the r2 score represents the coefficient of determination.
+                        This is the measure used to explain the variance of the model.
+                        The closer this metric is to 1, the better the model.
+                    </p>
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+    MAE: 58.72
+    r2_score: 0.76
+                    </code></pre>
+                </div>
+                <div class="inside-text">
+                    <p>from 0.7 the r2 score is considered good. Here, the MAE is also relatively low.
+                        Consequently, the model is relevant and efficient for our Time Series regression problem. <br><br>
+                        Now, we want to display the graph of the model to see the situation visually.
+                    </p>
+                </div>
+                <h2 class="secondary-title">Visualization</h2>
+                <div class="code-block">
+                    <pre><code class="language-python">
+    fig, ax = plt.subplots(figsize=(14, 4))
+    ax.plot(y_train.index, y_train)
+    ax.plot(y_test.index, y_test)
+    ax.plot(y_test.index, y_pred)
+    ax.legend(["historic", "real", "forecast"])
+    ax.grid(True, alpha=0.5, lw=0.5, ls='--')
+    plt.title("RandomForest Modelling", pad=10, fontsize=20, family="Comic Sans MS", weight="bold", color="darkblue")
+    plt.tight_layout()
+    plt.savefig("RandomForest_modelling.png")
+    plt.show()
+                    </code></pre>
+                </div>
+                <div class="inside-image">
+                    <img src="../../annex/annex_project1/RandomForest_modelling.png", alt="RandomForest Modelling">
+                </div>
+                <div class="inside-text">
+                    <p>let's zoom in on the test section for a better view</p>
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+    fig, ax = plt.subplots(figsize=(14, 4))
+    ax.plot(y_test.index, y_test, color="orange")
+    ax.plot(y_test.index, y_pred, color="green")
+    ax.legend(["real", "forecast"])
+    ax.grid(True, alpha=0.5, lw=0.5, ls='--')
+    plt.title("Zoom on the test part", pad=10, fontsize=20, family="Comic Sans MS", weight="bold", color="darkblue")
+    plt.tight_layout()
+    plt.savefig("RandomForest_test_part.png")
+    plt.show()
+                    </code></pre>
+                </div>
+                <div class="inside-image">
+                    <img src="../../annex/annex_project1/RandomForest_test_part.png", alt="Zoom on the test part">
+                </div>
+                <h2 class="secondary-title">Save the model</h2> 
+                <div class="code-block">
+                    <pre><code class="language-python">
+    from joblib import dump
+    dump(model, "RandomForestRegressor_model.joblib")
+                    </code></pre>
+                </div>         
+            </div>
+            <div class="bottom-article">
+                <p>Thank you for reading my article and feel free to contact me on <a href="https://www.linkedin.com/in/baptiste-henin/?locale=en_US">LinkedIn</a> to talk about Data Science !</p>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+</body>
+
+</html>
