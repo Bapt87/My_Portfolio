@@ -17,7 +17,6 @@ body.whole-body {
 
 /* === HEADER === */
 .header-context {
-  text-align: center;
   background-color: white;
   padding: 30px 40px 10px 40px;
   border-bottom: 1px solid #ddd;
@@ -27,24 +26,41 @@ body.whole-body {
   font-size: 2.2rem;
   color: #1e3a5f;
   font-weight: bold;
-  margin-bottom: 15px;
+  margin-bottom: 30px;
+  text-align: center;
 }
 
-.header-text p {
+/* Bloc horizontal pour texte + image */
+.header-bottom-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap; /* utile pour responsive */
+  gap: 30px;
+}
+
+.header-text {
+  flex: 1;
+  min-width: 300px;
   font-size: 1.1rem;
   color: #333;
-  max-width: 600px;
-  margin: 0 auto 20px auto;
   line-height: 1.6;
+  text-align: left;
+}
+
+.header-image {
+  flex: 1;
+  text-align: right;
+  min-width: 300px;
 }
 
 .header-image img {
-  max-width: 400px;
+  max-width: 350px;
   height: auto;
-  margin-top: 20px;
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
+
 
 /* === MAIN === */
 main {

@@ -11,15 +11,17 @@
     <div class="project-container">
         <header class="header-context">
             <h1 class="header-title">Project: Modeling a Random Forest Model on a Regression Problem</h1>
-            <div class="header-text">
-                <p>
-                    In this article, I want to simulate a problem of Time Series Regression. 
-                    I will use a Random Forest model helped with GridSearchCV to automate the search of the most optimized parameters for my model.
-                    The complete code is available on a Jupyter Notebook <a href="GridSearchCV + RandomForest.ipynb">here</a>.
-                </p>
-            </div>
-            <div class="header-image">
-                <img src="../../annex/annex_project1/Illustration_top_article.png" alt="article illustration image">
+            <div class="header-bottom-row">
+                <div class="header-text">
+                    <p>
+                        In this article, I want to simulate a problem of Time Series Regression. 
+                        I will use a Random Forest model helped with GridSearchCV to automate the search of the most optimized parameters for my model.
+                        The complete code is available on a Jupyter Notebook <a href="GridSearchCV + RandomForest.ipynb">here</a>.
+                    </p>
+                </div>
+                <div class="header-image">
+                    <img src="../../annex/annex_project1/Illustration_top_article.png" alt="article illustration image">
+                </div> 
             </div>
         </header>
         <main>
@@ -48,7 +50,8 @@
                 <div class="inside-text">
                     <p>
                         Firstly, I use make_regression to simulate a problem of regression.
-                        I chose to get a dataset of 1000 lines and 30 features which are hoing to help me train my model. 
+                        I chose to get a dataset of 1000 lines and 30 features which are going to help me train my model.
+                        I also implemented some noise to make the context more realistic. 
                     </p>
                 </div>
                 <div class="code-block">
@@ -64,7 +67,7 @@
                 </div>
                 <div class="inside-text">
                     <p>
-                        I then transformed this problem into a Time Series problem by creating DataFrames with a DatetimeIndex. 
+                        Then, as I needed this dataset to be a Time Series, I transformed the features X and my target y into DataFrames with a DatetimeIndex respectively.  
                     </p>
                 </div>
                 <div class="code-block">
@@ -73,7 +76,7 @@
     y = pd.DataFrame(data = y, columns=["Target"], index=pd.date_range(start="2020-01-01", periods=1000, freq="D"))
                     </code></pre>
                 </div>
-                <h2 class="secondary-title">Train / Test split </h2>
+                <h2 class="secondary-title">Train / Test Split </h2>
                 <div class="code-block">
                     <pre><code class="language-python">
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
@@ -92,12 +95,12 @@
                         and y_test is where the target series is stored fro the test part. 
                     </p>
                 </div>
-                <h2 class="secondary-title">Searching for the best parameters for the RandomForest</h2>
+                <h2 class="secondary-title">Looking to find the best parameters for the RandomForest model</h2>
                 <div class="inside-text">
-                    <p>In the following part, I established a param_grid with three parameters I want to optimize : n_estimators, max_depth and ccp_alpha</p>
+                    <p>In the following part, I established a param_grid with three parameters I want to optimize : n_estimators, max_depth and ccp_alpha.</p>
                         <ul>
-                            <li>n_estimators act as number of trees in the forest.</li>
-                            <li>max_depth represent the depth of each tree. The deeper the tree, the more complex and precise the model, but the greater the risk of overfitting.</li>
+                            <li>n_estimators acts as the number of trees in the forest.</li>
+                            <li>max_depth represents the depth of each tree. The deeper the tree, the more complex and precise the model, but the greater the risk of overfitting.</li>
                             <li>ccp_alpha represents the cost-complexity prunning in the model. It is a method used to reduce the complexity of decision trees in the random forest in order to limit overfitting.</li>
                         </ul>
                     <p>
@@ -148,7 +151,7 @@
                 <div class="inside-text">
                     <p>As I obtained the best parameters among those I tried with, I will now apply these parameters to my model and fit this model on the train part of my dataset.
                     Then, by using the predict() method on the model on X_test, I get the forecasts for the test phase, which I write down y_pred. 
-                    After this, I calculate some performance metrics to evaluate my model.</p>
+                    After this, I computed some performance metrics to evaluate the accuracy my model.</p>
                 </div>
                 <div class="code-block">
                     <pre><code class="language-python">
@@ -183,9 +186,9 @@
                     </code></pre>
                 </div>
                 <div class="inside-text">
-                    <p>from 0.7 the r2 score is considered good. Here, the MAE is also relatively low.
+                    <p>When the r2 score reaches 0.7 or more, it is considered good. Here, the MAE is also relatively low.
                         Consequently, the model is relevant and efficient for our Time Series regression problem. <br><br>
-                        Now, we want to display the graph of the model to see the situation visually.
+                        Now, we want to display the graph of the model to represent us the situation visually.
                     </p>
                 </div>
                 <h2 class="secondary-title">Visualization</h2>
@@ -207,7 +210,7 @@
                     <img src="../../annex/annex_project1/RandomForest_modelling.png", alt="RandomForest Modelling">
                 </div>
                 <div class="inside-text">
-                    <p>let's zoom in on the test section for a better view</p>
+                    <p>Let's zoom in on the test section for a better view.</p>
                 </div>
                 <div class="code-block">
                     <pre><code class="language-python">
