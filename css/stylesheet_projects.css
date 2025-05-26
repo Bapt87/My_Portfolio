@@ -40,7 +40,7 @@ body.whole-body {
 }
 
 .header-text {
-  flex: 1;
+  flex: 2;
   min-width: 300px;
   font-size: 1.1rem;
   color: #333;
@@ -50,7 +50,7 @@ body.whole-body {
 
 .header-image {
   flex: 1;
-  text-align: right;
+  margin-right: 30px;
   min-width: 300px;
 }
 
@@ -130,4 +130,58 @@ main {
   font-style: italic;
   color: #555;
   font-size: 1rem;
+}
+
+/* === BOUTON RETOUR ACCUEIL === */
+.back-home {
+  text-align: center;
+  margin-top: 40px;
+}
+
+.back-button {
+  display: inline-block;
+  padding: 12px 24px;
+  background-color: #1e3a5f;
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  border-radius: 30px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.back-button:hover {
+  background-color: #345f8c;
+  transform: scale(1.05);
+}
+
+
+/* === FOOTER === */
+footer {
+  background-color: #003366;
+  color: white;
+  text-align: center;
+  padding: 20px;
+  font-size: 0.9em;
+}
+
+.footer-container {
+  display: flex;
+  justify-content: center;
+  gap: 40px; /* espace horizontal entre les blocs */
+  flex-wrap: wrap; /* pour que ça passe en mobile */
+  align-items: center;
+}
+
+.footer-container p {
+  margin: 0;
+}
+
+.footer-container a {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.footer-container a:hover {
+  text-decoration: underline;
 }
