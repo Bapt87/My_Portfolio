@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <link rel="stylesheet" href="../../css/stylesheet_projects.css">
+    <title>Forecasting gas consumption in France for the year 2025 using the XGBoost model.</title>
+</head>
+<body class="whole-body">
+    <div class="project-container">
+        <header class="header-context">
+            <h1 class="header-title">Forecasting gas consumption using XGBoost</h1>
+            <div class="header-bottom-row">
+                <div class="header-text">
+                    <p>
+                       In this project, I will analyse the French gas consumption dataset and use it to forecast gas consumption in France for the year 2025.
+                       To do so, I am going to rely on the model XGBoost.  
+                        The complete code is available on a Jupyter Notebook <a href="XGBoost_Forecasting_on_gas_consumption.ipynb">here</a>.
+                    </p>
+                </div>
+                <div class="header-image">
+                    <img src="../../annex/annex_project2/Illustration_top_article.png" alt="article illustration image">
+                </div> 
+            </div>
+        </header>
+        <main>
+            <div class="corps-article">
+                <h2 class="secondary-title">Setting context</h2>
+                <div class="inside-text">
+                    <p>
+                        The Dataset I am using is taken from the official website of the French state data.gouv. You can access the resource at this <a href="https://www.data.gouv.fr/fr/datasets/consommation-quotidienne-brute/">Link</a>.
+                        This Dataset presents gas consumption at an hourly rate for the two largest suppliers to the french network: GRTgaz and Teréga.
+                        Data are expressed in MW. 
+                        Just note that the website mentions that data for the years 2021 to 2024 are in intermediate status, so may be subject to modification in the future. 
+                    </p>
+                </div>
+                <h2 class="secondary-title">importing the necessary packages and load the dataset</h2>                
+                <div class="code-block">
+                    <pre><code class="language-python">
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import plotly.express as px
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from xgboost import XGBRegressor
+
+df = pd.read_csv("consommation-quotidienne-brute.csv", sep=";")
+                    </code></pre>
+                </div>
+                <h2 class="secondary-title">Data Cleaning and visualize</h2>
+                <div class="inside-text">
+                    <p>
+                        Let's clean the dataset in order to work corectly with it. 
+                    </p>
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+df = df[["Date - Heure", "Date", "Heure", "Consommation brute gaz totale (MW PCS 0°C)"]]
+df = df.drop("Date - Heure", axis=1)
+df = df.rename(columns={"Consommation brute gaz totale (MW PCS 0°C)": "Total_gas_consumption"})
+df = df.dropna(subset=["Total_gas_consumption"]).reset_index(drop=True)
+df["Date"] = pd.to_datetime(df["Date"].astype(str).str.replace("/", "-") + " " + df["Heure"].astype(str), format="%d-%m-%Y %H:%M")
+df = df.drop("Heure", axis=1)
+                    </code></pre>
+                </div>
+                <div class="inside-text">
+                    <p>
+                        Here, I just kept the column containing gas consumption of both the GRTgaz and Teréga Networks. 
+                        Then, I renamed the columns and droped the NaN values corresponding to the 30 min intervals.
+                        Finally, I converted the "Date" Series into the correct datetime format. <br> <br>
+                        I now visualized the situation with a dynamic graph in order to zoom in to locate specificities of the dataset. 
+                    </p>
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+px.line(df, df["Date"], df["Total_gas_consumption"])
+                    </code></pre>
+                </div>
+                <div class="inside-image">
+                    <img src="../../annex/annex_project2/graph_initial_situation.png", alt="graphic of the initial situation">
+                </div>
+                <div class="inside-text">
+                    <p>
+                        The datas seem to follow a seasonality on a yearly basis, which is quit logic for the consumption of gaz.
+                        When we look closer to the dataset by zooming, we see a clear drop of energy consumption every year between May and September, which corresponds to the Summer.
+                        The highest energy consumption is generally between November and March which corresponds to the Winter. 
+                        We are also observing some exceptional outliers since 2020 at the beginning of the year, but as they continue to appear each year,
+                        we are assuming that thay become regular datas to take into consideration. <br> <br>
+                        I also displayed a frequency histogram to catch some outliers I did not see on this view with the following code but did not find any.
+                    </p>
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+df["Total_gas_consumption"].plot(kind="hist", bins=500)
+                    </code></pre>
+                </div>
+                <h2 class="secondary-title">Pre-processing for XGBoost</h2>
+                <div class="inside-text">
+                    <p>
+                        I adjusted the dates in the right order and managed two identical data points by averaging them. 
+                    </p>
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+df = df.sort_values(by="Date", ascending=True)
+df["Date"].value_counts()
+df = df.groupby("Date", as_index=True).mean()
+                    </code></pre>
+                </div>
+                <div class="inside-text">
+                    <p>
+                        The next step is to create features for our model. I chose to create to create temporal features such as hour, dayofweek, month etc..
+                        I also implemented 3 lag features by applying the .shift() method. 
+                    </p>
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+def create_features(df):
+    """
+    Create temporal features for our dataset
+    """
+    df = df.copy()
+    df["hour"] = df.index.hour
+    df["dayofweek"] = df.index.dayofweek
+    df["dayofmonth"] = df.index.day
+    df["weekofyear"] = df.index.isocalendar().week
+    df["dayofyear"] = df.index.dayofyear
+    df["month"] = df.index.month
+    df["quarter"] = df.index.quarter
+    df["year"] = df.index.year
+    #Creates lag columns in a DataFrameshangover list
+    #lagged_features = [df["Consommation_totale_gaz"].shift(lag).rename(f"lags_{lag}") for lag in range(1, 25)]   
+    # Concatenates all columns at once
+    #df = pd.concat([df] + lagged_features, axis=1)
+    return df
+
+def add_lags(df, col):
+    """
+    Implement lags of 1, 2 and 3 years
+    Takes two argument : a DataFrame and the target column used to implement the lags
+    """
+    df = df.copy()
+    df['lags_1'] = df[col].shift(freq='365D')
+    df['lags_2'] = df[col].shift(freq='730D')
+    df['lags_3'] = df[col].shift(freq='1095D')
+    return df
+
+df = create_features(df)
+df = add_lags(df, col="Total_gas_consumption")
+df = df.dropna()
+                    </code></pre>
+                </div>
+                <h2 class="secondary-title">Optimizing Dtypes for speed performance</h2>
+                <div class="inside-text">
+                    <p>
+                        The df.info() method indicates that the DataFrame uses 6.1 MB of memory to store the data.<br>
+                        <ul>
+                            <li>int8 can store integers between -128 and 127</li>
+                            <li>int16 can store integers between -32,768 and 32,767</li>
+                            <li>int32 can store integer between roughly -1,000,000,000 and 1,000,000,000</li>
+                            <li>int64 can store integers between roughly -1,000,000,000,000,000,000 and 1,000,000,000,000,000,000</li>
+                        </ul>
+                    </p>
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+def set_Dtypes(df):
+    df = df.copy()
+    df["Total_gas_consumption"] = df["Total_gas_consumption"].astype('int32')
+    df["hour"] = df["hour"].astype('int8')
+    df["dayofweek"] = df["dayofweek"].astype('int8')
+    df["dayofmonth"] = df["dayofmonth"].astype('int8')
+    df["weekofyear"] = df["weekofyear"].astype('int8')
+    df["dayofyear"] = df["dayofyear"].astype('int16')  
+    df["month"] = df["month"].astype('int8')  
+    df["quarter"] = df["quarter"].astype('int8')  
+    df["year"] = df["year"].astype('int16')  
+    for lag in range(1, 4):
+        df[f"lags_{lag}"] = df[f"lags_{lag}"].astype('int32')
+    return df
+
+df = set_Dtypes(df)
+df.info()
+                    </code></pre>
+                </div>
+                <div class="inside-text">
+                    <p>
+                        We went from 6.1 MB in memory usage to 2.8 MB without losing any precision for our model.
+                        This step will enable use to compute our model faster. <br> <br>
+                        Then, I stored the features and the target in two different variables in order to separate the model in two parts : train and test. 
+                    </p>
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+features = ["hour", "dayofweek", "dayofmonth", "weekofyear", "dayofyear", "month", "quarter", "year"] + [f"lags_{lag}" for lag in range(1, 4)]
+target = ["Total_gas_consumption"]
+
+X_train, X_test, y_train, y_test = train_test_split(df[features], df[target], test_size=24*365, shuffle=False)
+                    </code></pre>
+                </div>
+                <h2 class="secondary-title">XGBoost model</h2>
+                <div class="inside-text">
+                    <p>
+                        Firstly, I implemented a very basic XGBoost model without any tuning. 
+                    </p>
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+model_not_tuned = XGBRegressor(random_state=78)
+model_not_tuned.fit(X_train, y_train)
+ 
+y_pred_not_tunned = model_not_tuned.predict(X_test)
+y_pred_not_tunned = np.clip(y_pred_not_tunned, 0, None) #all values inferior to 0 are 0
+ 
+print(f"MAE: {mean_absolute_error(y_test, y_pred_not_tunned):,.2f}".replace(",", " "))
+print(f"r2_score: {r2_score(y_test, y_pred_not_tunned):.2f}")
+                    </code></pre>
+                </div>
+                <div class="inside-text">
+                    <p>
+                        Result: 
+                    </p>
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+MAE: 9 309.85
+r2_score: 0.61
+                    </code></pre>
+                </div>
+                <div class="inside-text">
+                    <p>
+                        The model is already correct but not incredible and has a r2_score to low. <br>
+                        Let's customize the model with parameters
+                    </p>
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+model_tuned = XGBRegressor(
+    n_estimators = 2000,
+    learning_rate = 0.01,
+    max_depth = 1,
+    gamma = 0.1,
+    subsample = 0.8,
+    colsample_bytree = 0.8,
+    reg_alpha = 1.0, 
+    objective="reg:squarederror",
+    tree_method="hist",
+    booster="gbtree",
+    random_state=78,
+    grow_policy="depthwise",
+    n_jobs = -1,
+    early_stopping_rounds = 100,
+)
+
+model_tuned.fit(X_train, y_train, eval_set = [(X_train, y_train), (X_test, y_test)], verbose=100)
+
+y_pred_tuned = model_tuned.predict(X_test)
+y_pred_tuned = np.clip(y_pred_tuned, 0, None) #all values inferior to 0 are 0
+
+print(f"MAE: {mean_absolute_error(y_test, y_pred_tuned):,.2f}".replace(",", " "))
+print(f"RMSE: {np.sqrt(mean_squared_error(y_test, y_pred_tuned)):,.2f}".replace(",", " "))
+print(f"r2_score: {r2_score(y_test, y_pred_tuned):.2f}")
+                    </code></pre>
+                </div>
+                <div class="inside-text">
+                    <p>
+                        I implemented some important parameters. Here are a few of them : <br>
+                        <ul>
+                            <li>n_estimators: it controls the number of trees in the model</li>
+                            <li>max_depth: it manages the depth of each tree. the deeper the tree, the more complex the model, but also the more prone to overfitting</li>
+                            <li>learning_rate: as xgboost follows a gradient boosting strategy in which each tree corrects the precedent one, the learning_rate determines at which rate the next tree will correct the precedent one.</li>
+                            <li>subsample: set to 0.8, each tree will be computed only 80% of the dataset. A random 80% of the dataset is chosen for each tree. This parameter prevents overfitting</li>
+                            <li>early_stopping_rounds: it's also a paramete to prevent overtraining. It defines the stopping of the model after 100 iterations (in our case) without improvement.</li>
+                        </ul>
+                        With this model I obtained the following metrics which are much better.
+                    </p>
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+MAE: 7 482.91
+r2_score: 0.76
+                    </code></pre>
+                </div>   
+                <h2 class="secondary-title">Find better parameters</h2>
+                <div class="inside-text">
+                    <p>
+                        In the following section, I defined a function in which we put lists of n_estimators, learning_rate and max_depth to test.
+                        the function randomly calculates many XGBoost models with different parameters.
+                    </p>
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+def search_best_parameter(n_estimators: int, learning_rate: float, max_depth: int, n:int, n_jobs: int, model):
+    """
+    Find the best parameters for the model by optimizing n_estimators, learning_rate and max_depth
+    """
+    for i in range(1, n + 1):
+        model.set_params(
+            n_estimators=np.random.choice(n_estimators).tolist(),
+            learning_rate = np.random.choice(learning_rate).tolist(),
+            max_depth = np.random.choice(max_depth).tolist(), 
+            n_jobs = n_jobs
+        )
+        model.fit(X_train, y_train, eval_set = [(X_train, y_train), (X_test, y_test)], verbose=100)
+        rmse = np.sqrt(mean_squared_error(y_test, model.predict(X_test)))
+        mae = mean_absolute_error(y_test, model.predict(X_test))
+        print(f"iteration {i}, n_estimators = {model.get_params()["n_estimators"]}, learning_rate = {model.get_params()["learning_rate"]}, max_depth = {model.get_params()["max_depth"]}, RMSE: {rmse:,.2f}, MAE: {mae:,.2f}")
+
+n_estimators = [2000, 3000, 4000]
+learning_rate = [0.001, 0.01, 0.1, 0.02, 0.2]
+max_depth = [1, 2, 3]
+search_best_parameter(n_estimators=n_estimators, learning_rate=learning_rate, max_depth=max_depth, n=15, n_jobs=-1, model=model_tuned)
+                    </code></pre>
+                </div>
+                <div class="inside-text">
+                    <p>
+                        The function returns that the optimized parameters are : <br>
+                        <ul>
+                            <li>n_estimators = 3000</li>
+                            <li>max_depth = 1</li>
+                            <li>learning_rate = 0.1</li>
+                        </ul> 
+                        I will now apply the optimized parameters, re-fit the model, predict the future values and compare the performance metrics.
+                    </p>
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+model_tuned.set_params(n_estimators =3000, max_depth = 1, learning_rate = 0.1)
+model_tuned.fit(X_train, y_train, eval_set = [(X_train, y_train), (X_test, y_test)], verbose=100)
+y_pred_tuned_final = model_tuned.predict(X_test)
+y_pred_tuned_final = np.clip(y_pred_tuned_final, 0, None) #All values inferior to 0 become 0
+print(f"MAE: {mean_absolute_error(y_test, y_pred_tuned_final):,.2f}")
+print(f"r2_score: {r2_score(y_test, y_pred_tuned_final):.2f}")
+                    </code></pre>
+                </div>
+                <div class="inside-text">
+                    <p>
+                        Results:
+                    </p>
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+MAE: 7,394.88
+r2_score: 0.78
+                    </code></pre>
+                </div>
+                <div class="inside-text">
+                    <p>
+                        The parameters are a little bit better and I can now visualise the model on a graph. 
+                    </p>
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+fig, ax = plt.subplots(figsize=(16, 4))
+ax.scatter(y_train.index, y_train, label="historique", color="blue")
+ax.scatter(y_test.index, y_test, label="vrais", marker="o", color="green")
+ax.plot(y_test.index, y_pred_tuned_final, label="prédites", color="red")
+ax.grid(True, alpha=0.7, ls='--', lw=0.5)
+ax.legend(loc='best')
+ax.set_title("Model tunned", pad=20, fontsize=20)
+plt.tight_layout()
+plt.savefig("../../annex/annex_project2/XGBoost_model_tunned.png")
+plt.show()
+                    </code></pre>
+                </div>
+                <div class="inside-image">
+                    <img src="../../annex/annex_project2/XGBoost_model_tunned.png", alt="graphic of the initial situation">
+                </div>
+                <h2 class="secondary-title">Quick overview of the feature importances</h2>
+                <div class="code-block">
+                    <pre><code class="language-python">
+fi = pd.DataFrame(data = model_tuned.feature_importances_, index = model_tuned.feature_names_in_, columns=["importance"])
+plt.figure(figsize=(12, 12))
+fi.sort_values(by="importance", ascending=True).plot(kind="barh", title="Feature importances")
+plt.savefig("../../annex/annex_project2/Feature_importances.png")
+                    </code></pre>
+                </div>
+                <div class="inside-image">
+                    <img src="../../annex/annex_project2/Feature_importances.png", alt="graphic of the initial situation">
+                </div>
+                <div class="inside-text">
+                    <p>
+                        We observ that the lags features are much more taken into account in the model and are clearly the most important ones.
+                    </p>
+                </div>
+                <h2 class="secondary-title">Re-train model on the complete Dataset</h2>
+                <div class="inside-text">
+                    <p>
+                        Re-training the model on the complete Dataset in a way to leverage all the datas for the real forecast.
+                        I changed the parameters n_estimators from 3000 to 2100 because it is where I noticed that the model was overfitting.
+                    </p>
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+X_all = df[features]
+y_all = df[target]
+
+model_tuned.set_params(n_estimators=2100)
+model_tuned.fit(X_all, y_all, eval_set = [(X_all, y_all)], verbose=100)
+                    </code></pre>
+                </div>
+                <h2 class="secondary-title">Forecasting the year 2025</h2>
+                <div class="code-block">
+                    <pre><code class="language-python">
+#Create future dataFrame to store future predictions
+dates = pd.date_range(start=df.index.max()+ pd.DateOffset(hour=1) + pd.offsets.MonthBegin(1), periods=24*365, freq="1h")
+df_futur = pd.DataFrame(index=dates)
+df["isFuture"] = False
+df_futur["isFuture"] = True
+
+#Concatenate the two DataFrames 
+df_all = pd.concat([df, df_futur], axis=0)
+
+#Creating the features
+df_all = create_features(df_all)
+df_all = add_lags(df_all, col="Total_gas_consumption")
+
+df_w_features = df_all[df_all["isFuture"] == True].copy()
+df_w_features['pred'] = model_tuned.predict(df_w_features[features])
+                    </code></pre>
+                </div>
+                <div class="inside-text">
+                    <p>
+                        These lines allow me to create a future DataFrame to store future predictions. 
+                        I can then concatenate the two DataFrames and pass my two functions create_features() and add_lags() to this concatenated DataFrame.
+                        Finally, I make the prediction for the year 2025 and store the forecasts in a Series called "pred".<br>
+                        By running :
+                    </p>
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+df_w_features['pred'].plot(figsize=(16,8))
+                    </code></pre>
+                </div>
+                <div class="inside-text">
+                    <p>
+                        I obtain my forecasts visually : 
+                    </p>
+                </div>
+
+                <div class="inside-image">
+                    <img src="../../annex/annex_project2/Forecasts.png", alt="Forecasts of the year 2025">
+                </div>
+                <h2 class="secondary-title">visualize the forecasts with the rest of the Dataset</h2>
+                <div class="code-block">
+                    <pre><code class="language-python">
+fig, ax = plt.subplots(figsize=(14, 4))
+ax.plot(df.index, df["Total_gas_consumption"])
+ax.plot(df_w_features.index, df_w_features["pred"])
+ax.legend(["historic datas", "forecasts"])
+ax.set_title("Forecasting Gas consumption for year 2025", fontsize=20)
+plt.tight_layout()
+plt.savefig("../../annex/annex_project2/Forecasts_with_history.png")
+plt.show()
+                    </code></pre>
+                </div>
+                <div class="inside-image">
+                    <img src="../../annex/annex_project2/Forecasts_with_history.png", alt="Forecasts with history">
+                </div>
+                <h2 class="secondary-title">Save the model</h2>
+                <div class="code-block">
+                    <pre><code class="language-python">
+model_tuned.save_model("model_xgboost.json")
+                    </code></pre>
+                </div>
+                <h2 class="secondary-title">Final interpretation of the forecasts</h2>
+
+                <div class="inside-text">
+                    <p>
+                        The forecasts given by XGBoost follow the same seasonality we have for the past 10 years.
+                        Despite the seasonality, we can observ that consumption is declining overall.
+                        Indeed, whereas 10 years ago values vary from 100,000 to 140,000 during winters, the values vary now from 80,000 to 100,000 during winters and it tends to decrease even more progressively. 
+                    </p>
+                </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            </div>
+            <div class="bottom-article">
+                <p>Thank you for reading my article and feel free to contact me on <a href="https://www.linkedin.com/in/baptiste-henin/?locale=en_US">LinkedIn</a> to talk about Data Science !</p>
+            </div>
+            <div class="back-home">
+                <a href="../../index.html" class="back-button">⬅ Back to Home</a>
+            </div>
+        </main>
+    </div>
+
+    <footer class="personnal_contact">
+        <div class="footer-container">
+        <p>&copy; Baptiste Henin</p>
+        <p>
+            <a href="https://www.linkedin.com/in/baptiste-henin/">
+            <i class="fab fa-linkedin"></i> LinkedIn
+            </a>
+        </p>
+        <p>
+            <a href="annex/annex_index/Resume_Baptiste_Henin.pdf">
+            <i class="fas fa-file-pdf"></i> My Resume (PDF)
+            </a>
+        </p>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+
+</body>
+
+</html>
