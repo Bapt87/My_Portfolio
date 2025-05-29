@@ -153,7 +153,13 @@ memory usage: 234.6 KB
                 <h2 class="secondary-title">Dynamic visual representation of the stock prices</h2>
                 <div class="code-block">
                     <pre><code class="language-python">
-px.line(df, df.index, df["Close"], title="TESLA stock prices")
+def initial_visualization(df, target, title: str):
+    """ 
+    Get a dynamic visualization of the stock prices
+    """
+    return px.line(df, df.index, df[target], title=title)
+
+initial_visualization(df, target="Close", title="TESLA stock prices")
                     </code></pre>
                 </div>
                 <div class="inside-image">
@@ -397,6 +403,7 @@ def stocks_markov(company: str):
 
     print(f"Overview of {company}'s stock prices:")
     display(df)
+    display(initial_visualization(df, target="Close", title=f"{company}'s stock prices"))
     print("Current state: ")
     display(next_prob["current state"].iloc[0])
     print("Number of each state on this market historically")
@@ -409,7 +416,7 @@ def stocks_markov(company: str):
                 <div class="inside-text">
                     <p>
                         This function combines all the other functions implemented previously and let me automate the theroy of Markov chains on the stock prices of any company.
-                        The function returns each time the overview of the company's stock prices, the current state of the market, the number of each state on this market and finally the transition matrix for the next event and the stationary transition matrix corresponding to the long-term equilibrium. <br>
+                        The function returns each time the overview of the company's stock prices, its graphical representation, the current state of the market, the number of each state on this market and finally the transition matrix for the next event and the stationary transition matrix corresponding to the long-term equilibrium. <br>
                         Let's test the pipeline on Apple by simply running the following:
                     </p>
                 </div>
@@ -431,6 +438,9 @@ stocks_markov("apple")
                 </div>
                 <div class="inside-image">
                     <img src="../../annex/annex_project3/pipeline_result_3.png", alt="pipeline result 3">
+                </div>
+                <div class="inside-image">
+                    <img src="../../annex/annex_project3/pipeline_result_4.png", alt="pipeline result 4">
                 </div>
             </div>
             <div class="bottom-article">
