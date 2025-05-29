@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <link rel="stylesheet" href="../../css/stylesheet_projects.css">
+    <title>Apply the concept of Markov Chains on stock prices.</title>
+</head>
+<body class="whole-body">
+    <div class="project-container">
+        <header class="header-context">
+            <h1 class="header-title">Apply the concept of Markov Chains on stock prices.</h1>
+            <div class="header-bottom-row">
+                <div class="header-text">
+                    <p>
+                        The goal of this project is to use the concept of Markov chains and apply it to TESLA stocks in order to detect some regularity and get an overview of the market. 
+                        At the end, I create a pipeline enabling me to get very fast the same analysis for any company.
+                        The complete code is available on a Jupyter Notebook <a href="Markov_chains_Tesla_stocks.ipynb">here</a>.
+                    </p>
+                </div>
+                <div class="header-image">
+                    <img src="../../annex/annex_project3/Transition_matrix.png" alt="article illustration image">
+                </div> 
+            </div>
+        </header>
+        <main>
+            <div class="corps-article">
+                <h2 class="secondary-title">Disclaimer</h2>
+                <div class="inside-text">
+                    <p>
+                        It is not an easy task to forecast stocks because we cannot only rely on the historicity of the market.
+                        Indeed, World events, crises and spontaneous decisions make the task highly complex, and add an undeniable element of uncertainty to the stock forecasting process.
+                        However, historical datas remain a strong element for analysis and one can recognize some patterns on the market.
+                        These patterns do not take all factors into account, but they can serve as a reference point in certain situations where we need to take a stand.<br><br>
+
+                        Today, I am not going to look into patterns in particular. Instead, I want to look into the ways to use Markov chains to determine the probability of an event occuring on the google stocks.
+                    </p>
+                </div>
+                <h2 class="secondary-title">How Markov chains work</h2>
+                <div class="inside-text">
+                    <p>
+A Markov chain is a mathematical model that represents a system that evolves from one state to another, randomly, but with a limited memory:
+The Markov property defines that the future state depends only on the present state, not on previous states.
+The system can move from a present state to a future state thanks to transition probabilities given by a transition matrix.
+If we take the example with three states occuring : A, B and C, and we give to each of the states a probability to occur, then the transition matrix is modelled as follows:
+                    </p>
+                </div>
+                <div class="inside-image">
+                    <img src="../../annex/annex_project3/Transition_matrix.png", alt="Transition matrix">
+                </div>
+                <div class="inside-text">
+                    <p>
+                        in this example, only one of the three elements occurs each day
+                        Then, for example, when the start state is A,  we have a 80% to get also state A tomorrow, 10% that B occurs and 10% that C occurs.
+                        Things get interesting when we want to predict further ahead in time. For example, we want to get the probability that state A in occuring in two days from the current state A. In this contexte, we get 3 possibilities :
+                        <ul>
+                            <li>A -> A -> A : 0.8 * 0.8 = 0.64</li>
+                            <li>A -> B -> A : 0.1 * 0.3 = 0.03</li>
+                            <li>A -> C -> A : 0.1 * 0.2 = 0.02</li>
+                        </ul>
+                        0.64 + 0.03 + 0.02 = 0.69 represents the probability that state A is occuring in tow days.
+                        Actually, you can see that this computing correspond to the multiplication of the transition matrix by itself.
+                        If we want the probability of the states occuring in a week from now, according to the markov chain, we have to multiply this matrix 7 times by itself.
+                    </p>
+                </div>
+                <div class="inside-text">
+                    <p>
+                        Concerning the stocks market, I will suppose 5 different states in order to implement the markov chain in the google stocks analysis :
+                        <ul>
+                            <li>consequent drop</li>
+                            <li>slight drop</li>
+                            <li>stagnation</li>
+                            <li>slight increase</li>
+                            <li>consequent increase</li>
+                        </ul>
+                    </p>
+                </div>
+                <h2 class="secondary-title">Implementation in python</h2>
+                <div class="inside-text">
+                    <p>
+I am going to use the non-official yahoo finance API which is named yfinance to get the stock prices from TESLA.
+As it is an unoffcial API (this API scraps the html and json files of yahoo finance), this api is sensitive to changes on the yahoo site and this can lead to sudden errors.
+To avoid a potential error, I will save the stock prices found in a parquet file. (parquet format in order to save memory and conserve Dtypes of Series). I wll name this function get_and_save.
+<br><br>
+Before doing this, I'm going to retrieve a file containing the tickers for a number of companies as I'll need them to use the yfinance API.
+I can get such a csv file (which I named Tickers_list.csv) from the Nasdaq website at this address: <a href="https://www.nasdaq.com/market-activity/stocks/screener">https://www.nasdaq.com/market-activity/stocks/screener</a>. 
+I will name this function get_ticker.
+                    </p>
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+def get_ticker(name: str):
+    """ 
+    Get the ticker of a company
+    """
+    tickers_list = pd.read_csv("Tickers_list.csv")
+    tickers_list = tickers_list[["Symbol", "Name"]]
+    tickers_list["Name"] = tickers_list["Name"].str.lower()
+    return tickers_list.loc[tickers_list["Name"].str.contains(name)]
+
+get_ticker("tesla")
+                    </code></pre>
+                </div>
+                <div class="inside-text">
+                    <p>
+                        Result: 
+                    </p>
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+        Symbol	Name
+6285	TSLA	tesla inc. common stock
+
+                    </code></pre>
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+def get_and_save(t: str):
+    """
+    Get the stocks using the yahoo finance API and save the DataFrame in a parquet file
+    """
+    ticker = yf.Ticker(t)
+    df_stocks = ticker.history(period='max').to_parquet("TESLA_stocks.parquet")
+    return pd.read_parquet("TESLA_stocks.parquet")
+
+df = get_and_save("TSLA")
+df.info()
+                    </code></pre>
+                </div>
+                <div class="inside-text">
+                    <p>
+                        Result:
+                    </p>
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+DatetimeIndex: 3753 entries, 2010-06-29 00:00:00-04:00 to 2025-05-29 00:00:00-04:00
+Data columns (total 7 columns):
+ #   Column        Non-Null Count  Dtype  
+---  ------        --------------  -----  
+ 0   Open          3753 non-null   float64
+ 1   High          3753 non-null   float64
+ 2   Low           3753 non-null   float64
+ 3   Close         3753 non-null   float64
+ 4   Volume        3753 non-null   int64  
+ 5   Dividends     3753 non-null   float64
+ 6   Stock Splits  3753 non-null   float64
+dtypes: float64(6), int64(1)
+memory usage: 234.6 KB
+                    </code></pre>
+                </div>
+                <h2 class="secondary-title">Dynamic visual representation of the stock prices</h2>
+                <div class="code-block">
+                    <pre><code class="language-python">
+px.line(df, df.index, df["Close"], title="TESLA stock prices")
+                    </code></pre>
+                </div>
+                <div class="inside-image">
+                    <img src="../../annex/annex_project3/Graph_TESLA_stock_prices.png", alt="Visual representation of the TESLA stock prices">
+                </div>
+                <h2 class="secondary-title">Set the DataFrame in the right format</h2>
+                <div class="code-block">
+                    <pre><code class="language-python">
+def format_dataset(df) : 
+    """ 
+    Clean and format the dataset.
+    """
+    df = df.reset_index()
+    df = df[["Date", "Close"]]
+    df["Date"] = df["Date"].dt.strftime("%Y-%m-%d")
+    df["Date"] = pd.to_datetime(df["Date"])
+    return df
+
+df = format_dataset(df)
+                    </code></pre>
+                </div>
+                <h2 class="secondary-title">Define the probability of each state occuring</h2>
+                <div class="inside-text">
+                    <p>
+                        The probability displayed later on the transition matrix are going to highly rely on how we defined our 5 states. 
+                        It is the most delicate part to determine these states.
+                        The results can vary a lot depending on if for exemple a variation of 5% is considered as a slight increase or a big rise. <br>
+                        For my part, I will define my states as the following : 
+                        <ul>
+                            <li>consequent drop: -8% or lower</li>
+                            <li>slight drop : from -8% to -0.5%</li>
+                            <li>stagnation : from -0.5% to 0.5%</li>
+                            <li>slight increase : from 0.5% to 8%</li>
+                            <li>consequent increase : 8% or above</li>
+                        </ul>
+                    </p>
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+def assign_states(df, target):
+    """
+    Creation function of the stats consequent increase, slight increase, stagnation, slight drop, consequent drop
+    """
+    growth = df[target].pct_change()
+    df["state"] = "défault" # by default state
+    df.loc[growth <= -0.08 , "state"] = 0  # consequent drop
+    df.loc[(growth > -0.08) & (growth <= -0.005), "state"] = 1  # slight drop
+    df.loc[(growth > -0.005) & (growth < 0.005), "state"] = 2  # stagnation
+    df.loc[(growth >= 0.005) & (growth < 0.08), "state"] = 3  # slight increase
+    df.loc[growth >= 0.08, "state"] = 4  # consequent increase
+    df = df.drop(df[df["state"] == "défault"].index) # Supress the first value due to .pct_change()
+    df["state"] = df["state"].astype('int8')
+    return df
+                    </code></pre>
+                </div>
+                <h2 class="secondary-title">Creation of the transition matrix</h2>
+                <div class="code-block">
+                    <pre><code class="language-python">
+# Creation of the transition matrix
+
+def transition_matrix(states, n_states = 5) : 
+    """
+    Create the transition matrice for the Markov chain
+    """
+    matrix = np.zeros((n_states, n_states))
+    for (i, j) in zip(states[:-1], states[1:]) :
+        matrix[i, j] += 1
+    matrix = matrix / matrix.sum(axis=1, keepdims=True)
+
+    return pd.DataFrame(data = matrix, index = ["consequent_drop", "slight_drop", "stagnation", "slight_increase", "consequent_increase"], columns=["consequent_drop", "slight_drop", "stagnation", "slight_increase", "consequent_increase"])
+
+# Apply the functions 
+df = assign_states(df, target="Close")
+tm = transition_matrix(df["state"], n_states=5)
+                    </code></pre>
+                </div>
+                <div class="inside-text">
+                    <p>
+                        I created the transition matrix containing the transition probabilities between each state. 
+                        Firstly, I initialized a matrix filled with 0. 
+                        Then I created a for loop with a variable i and j which each take two values which follow each other in the Series df[‘state’].
+                        And it adds a 1 to the change of state.
+                        Then, at the end, we express these values as a percentage. 
+                        For example, if we run the first iteration of the for loop, the variable "i" will take the value 2 and the variable "j" will take the value 1, then we add a 1 to the third row and second column of the matrix,
+                        which corresponds to the change from ‘stagnation’ to ‘slight drop’.
+                        The function returns this matrix under the form of a pandas DataFrame. <br><br>
+                        Here is the matrix:
+                    </p>
+                </div>
+                <div class="inside-image">
+                    <img src="../../annex/annex_project3/Transition_matrix_TESLA_stock_prices.png", alt="Transition matrix of the Tesla stock prices">
+                </div>
+                <h2 class="secondary-title">Get the current state and the probabilities for the future state</h2>
+                <div class="code-block">
+                    <pre><code class="language-python">
+def Display_probs_next_move(df, transition_df):
+    """
+    Get the current state and its transition probability.
+    """
+    states = ["consequent_drop", "slight_drop", "stagnation", "slight_increase", "consequent_increase"]
+    for i, state in zip(range(5), states):
+        if df["state"].iloc[-1] == i:    
+            next_probs = pd.DataFrame(data= transition_df.to_numpy()[i, :]).T.rename(columns={0:"consequent_drop", 1:"slight_drop", 2: "stagnation", 3: "slight_increase", 4: "consequent_increase"})
+            current_state = pd.DataFrame({"current state": state}, index=[0])
+            return pd.concat([current_state, next_probs], axis=1)
+
+
+next_prob = Display_probs_next_move(df, tm)
+next_prob
+                    </code></pre>
+                </div>
+                <div class="inside-text">
+                    <p>
+                        Result:
+                    </p>
+                </div>
+                <div class="inside-image">
+                    <img src="../../annex/annex_project3/Current_state.png", alt="Current state of the market and its changing states probabilities">
+                </div>
+                <h2 class="secondary-title">Get the number of times of each states historically</h2>
+                <div class="code-block">
+                    <pre><code class="language-python">
+def historical_number_of_states(df, target):
+    """ 
+    Get the historical number of states
+    """
+    states_number = pd.DataFrame(data = df[target].value_counts()).sort_values(by=target, ascending=True).reset_index()
+    states_number[target] = states_number[target].astype('object')
+
+    for i, j in zip(range(5), ["consequent_drop", "slight_drop", "stagnation", "slight_increase", "consequent_increase"]):
+        states_number.loc[states_number[target] == i, target] = j
+    states_number = states_number.set_index(target)
+
+    return states_number
+
+# Apply the function 
+states_number = historical_number_of_states(df, target="state")
+states_number
+                    </code></pre>
+                </div>
+                <div class="inside-text">
+                    <p>
+                        Result:
+                    </p>
+                </div>
+                <div class="inside-image">
+                    <img src="../../annex/annex_project3/number_of_states_historically.png", alt="Number of states historically">
+                </div>
+                <div class="inside-text">
+                    <p>
+                        This functions helps tu understand how much different states were counted. It gives us an overview of the most dominant states on the market (highly dependent on the percentages assigned to the states at the beginning).
+                    </p>
+                </div>
+                <h2 class="secondary-title">Long-term equilibrium</h2>
+                <div class="inside-text">
+                    <p>
+The objective of long-term equilibrium is to get the probabilities of an event occuring in the long-run and not just for the next time.
+To get that, we need to reach stationary distribution of the markov chains.
+The Stationary distribution of the Markov chain is when the system forgets its starting point and no matter the number of times the transition matrix is multiplicated, the output will always be the same.
+In Stocks prediction, the stationarity distribution of the Markov Chains corresponds to the long-term equilibrium.
+Stationary distribution is given by the stationary transition matrix. 
+Let's compute the stationary transition matrix and determine from how many multiplications this matrix does not evolve anymore.
+                    </p>
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+def reach_stable_states(transition_df):
+    """
+    Computes at which iteration the stationary matrix is reached.
+    Returns the number of iterations needed and the stationary matrix itself
+    """
+    previous = transition_df.to_numpy()
+    base = transition_df.to_numpy()
+    count = 0
+    while True:
+        current = previous.dot(base)
+        count += 1
+        if np.allclose(current, previous, atol=1e-5) :
+            break
+        previous = current
+    return count, pd.DataFrame(data=current, index=transition_df.index, columns=transition_df.columns)
+
+
+iterations, stationary_matrix = reach_stable_states(tm)
+
+print(f"Matrix convergence in {iterations} iterations")
+print("Stationary Matrix:")
+print(stationary_matrix)
+                    </code></pre>
+                </div>
+                <div class="inside-text">
+                    <p>
+                        The stationary transition matrix is reached in 5 multiplaction of itself. 
+                    </p>
+                </div>
+                <h2 class="secondary-title">Visualization of the two transition matrix (next event and long-term)</h2>
+                <div class="code-block">
+                    <pre><code class="language-python">
+def view_matrix(transition_df, stationary_transition_df):
+    """
+    Display both the transition matrix for the next event and the transition matrix when the market is considered at its equilibirum
+    """
+    plt.figure(figsize=(14, 5))
+    for (i, matrix, title) in zip(range(1, 3), [transition_df, stationary_transition_df], ["Transition matrix for the next event", "Stationary transition matrix"]):
+        plt.subplot(1, 2, i)
+        sns.heatmap(data=matrix, cmap="coolwarm", annot=True)
+        plt.title(title, fontsize=20)
+    return plt.show()
+
+view_matrix(tm, stationary_matrix)
+                    </code></pre>
+                </div>
+                <div class="inside-text">
+                    <p>
+                        Result:
+                    </p>
+                </div>
+                <div class="inside-image">
+                    <img src="../../annex/annex_project3/heatmap_transition_matrix.png", alt="heatmap transition matrix">
+                </div>
+                <h2 class="secondary-title">Installation of an automated pipeline</h2>
+                <div class="code-block">
+                    <pre><code class="language-python">
+from IPython.display import display
+
+def stocks_markov(company: str):
+    """
+    Automated pipeline which displays the Markov chains for the chosen company.
+    Displays the name of the company, the DataFrame, current state's transition probabilities, and the stationary matrix.
+    """
+    df_ticker = get_ticker(company)
+    df_ticker = df_ticker["Symbol"].iloc[0]
+    df = get_and_save(df_ticker)
+    df = format_dataset(df)
+    df = assign_states(df, target="Close")
+
+    tm = transition_matrix(df["state"], n_states=5)
+    next_prob = Display_probs_next_move(df, tm)
+    states_number = historical_number_of_states(df, target="state")
+    iterations, stationary_matrix = reach_stable_states(tm)
+
+    print(f"Overview of {company}'s stock prices:")
+    display(df)
+    print("Current state: ")
+    display(next_prob["current state"].iloc[0])
+    print("Number of each state on this market historically")
+    display(states_number)
+    display(view_matrix(tm, stationary_matrix))
+
+    return None
+                    </code></pre>
+                </div>
+                <div class="inside-text">
+                    <p>
+                        This function combines all the other functions implemented previously and let me automate the theroy of Markov chains on the stock prices of any company.
+                        The function returns each time the overview of the company's stock prices, the current state of the market, the number of each state on this market and finally the transition matrix for the next event and the stationary transition matrix corresponding to the long-term equilibrium. <br>
+                        Let's test the pipeline on Apple by simply running the following:
+                    </p>
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+stocks_markov("apple")
+                    </code></pre>
+                </div>
+                <div class="inside-text">
+                    <p>
+                        Result: 
+                    </p>
+                </div>
+                <div class="inside-image">
+                    <img src="../../annex/annex_project3/pipeline_result_1.png", alt="pipeline result 1">
+                </div>
+                <div class="inside-image">
+                    <img src="../../annex/annex_project3/pipeline_result_2.png", alt="pipeline result 2">
+                </div>
+                <div class="inside-image">
+                    <img src="../../annex/annex_project3/pipeline_result_3.png", alt="pipeline result 3">
+                </div>
+            </div>
+            <div class="bottom-article">
+                <p>Thank you for reading my article and feel free to contact me on <a href="https://www.linkedin.com/in/baptiste-henin/?locale=en_US">LinkedIn</a> to talk about Data Science !</p>
+            </div>
+            <div class="back-home">
+                <a href="../../index.html" class="back-button">⬅ Back to Home</a>
+            </div>
+        </main>
+    </div>
+
+    <footer class="personnal_contact">
+        <div class="footer-container">
+        <p>&copy; Baptiste Henin</p>
+        <p>
+            <a href="https://www.linkedin.com/in/baptiste-henin/">
+            <i class="fab fa-linkedin"></i> LinkedIn
+            </a>
+        </p>
+        <p>
+            <a href="annex/annex_index/Resume_Baptiste_Henin.pdf">
+            <i class="fas fa-file-pdf"></i> My Resume (PDF)
+            </a>
+        </p>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+
+</body>
+
+</html>
