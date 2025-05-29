@@ -12,9 +12,9 @@ This website presents:
 
 ## 📊 Projects
 
-- [sales prediction with XGBoost](projets/projet1.html)
-- [Clustering of LinkedIn users(coming soon)]()
-- [Time Series Analysis with the help of LSTM model (coming soon)]()
+- [Modelling a RandomForest model and optimizing its parameters](Projects/project1/GridSearchCV%20+%20RandomForest.html)
+- [Forecating French gas consumption for the year 2025 using XGBoost](Projects/project2/XGBoost_Forecating_on_gas_consumption.html)
+- [Apply the concept of Markov Chains on stock prices](Projects/project3/Markov_chains.Tesla_stocks.html)
 
 ---
 
