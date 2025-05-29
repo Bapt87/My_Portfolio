@@ -59,14 +59,14 @@ If we take the example with three states occuring : A, B and C, and we give to e
                             <li>A -> B -> A : 0.1 * 0.3 = 0.03</li>
                             <li>A -> C -> A : 0.1 * 0.2 = 0.02</li>
                         </ul>
-                        0.64 + 0.03 + 0.02 = 0.69 represents the probability that state A is occuring in tow days.
-                        Actually, you can see that this computing correspond to the multiplication of the transition matrix by itself.
+                        0.64 + 0.03 + 0.02 = 0.69 represents the probability that state A is occuring in two days.
+                        Actually, you can see that this computing corresponds to the multiplication of the transition matrix by itself.
                         If we want the probability of the states occuring in a week from now, according to the markov chain, we have to multiply this matrix 7 times by itself.
                     </p>
                 </div>
                 <div class="inside-text">
                     <p>
-                        Concerning the stocks market, I will suppose 5 different states in order to implement the markov chain in the google stocks analysis :
+                        Concerning the stocks market, I will suppose 5 different states in order to implement the Markov Chains in the Tesla stocks analysis :
                         <ul>
                             <li>consequent drop</li>
                             <li>slight drop</li>
@@ -81,7 +81,7 @@ If we take the example with three states occuring : A, B and C, and we give to e
                     <p>
 I am going to use the non-official yahoo finance API which is named yfinance to get the stock prices from TESLA.
 As it is an unoffcial API (this API scraps the html and json files of yahoo finance), this api is sensitive to changes on the yahoo site and this can lead to sudden errors.
-To avoid a potential error, I will save the stock prices found in a parquet file. (parquet format in order to save memory and conserve Dtypes of Series). I wll name this function get_and_save.
+To avoid a potential error, I will save the stock prices found in a parquet file. (parquet format in order to save memory and conserve Dtypes of Series). I will name this function get_and_save.
 <br><br>
 Before doing this, I'm going to retrieve a file containing the tickers for a number of companies as I'll need them to use the yfinance API.
 I can get such a csv file (which I named Tickers_list.csv) from the Nasdaq website at this address: <a href="https://www.nasdaq.com/market-activity/stocks/screener">https://www.nasdaq.com/market-activity/stocks/screener</a>. 
@@ -240,7 +240,7 @@ tm = transition_matrix(df["state"], n_states=5)
                     <p>
                         I created the transition matrix containing the transition probabilities between each state. 
                         Firstly, I initialized a matrix filled with 0. 
-                        Then I created a for loop with a variable i and j which each take two values which follow each other in the Series df[‘state’].
+                        Then I created a for loop with two variables i and j which each take two values which follow each other in the Series df[‘state’].
                         And it adds a 1 to the change of state.
                         Then, at the end, we express these values as a percentage. 
                         For example, if we run the first iteration of the for loop, the variable "i" will take the value 2 and the variable "j" will take the value 1, then we add a 1 to the third row and second column of the matrix,
@@ -317,8 +317,8 @@ states_number
                 <div class="inside-text">
                     <p>
 The objective of long-term equilibrium is to get the probabilities of an event occuring in the long-run and not just for the next time.
-To get that, we need to reach stationary distribution of the markov chains.
-The Stationary distribution of the Markov chain is when the system forgets its starting point and no matter the number of times the transition matrix is multiplicated, the output will always be the same.
+To get that, we need to reach stationary distribution of the Markov Chains.
+The Stationary distribution of the Markov Chain is when the system forgets its starting point and no matter the number of times the transition matrix is multiplicated, the output will always be the same.
 In Stocks prediction, the stationarity distribution of the Markov Chains corresponds to the long-term equilibrium.
 Stationary distribution is given by the stationary transition matrix. 
 Let's compute the stationary transition matrix and determine from how many multiplications this matrix does not evolve anymore.
@@ -352,7 +352,7 @@ print(stationary_matrix)
                 </div>
                 <div class="inside-text">
                     <p>
-                        The stationary transition matrix is reached in 5 multiplaction of itself. 
+                        The stationary transition matrix is reached in 5 multiplication of itself. 
                     </p>
                 </div>
                 <h2 class="secondary-title">Visualization of the two transition matrix (next event and long-term)</h2>
@@ -415,7 +415,7 @@ def stocks_markov(company: str):
                 </div>
                 <div class="inside-text">
                     <p>
-                        This function combines all the other functions implemented previously and let me automate the theroy of Markov chains on the stock prices of any company.
+                        This function combines all the other functions implemented previously and let me automate the theroy of Markov Chains on the stock prices of any company.
                         The function returns each time the overview of the company's stock prices, its graphical representation, the current state of the market, the number of each state on this market and finally the transition matrix for the next event and the stationary transition matrix corresponding to the long-term equilibrium. <br>
                         Let's test the pipeline on Apple by simply running the following:
                     </p>
