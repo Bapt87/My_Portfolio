@@ -30,12 +30,12 @@
                 <div class="inside-text">
                     <p>
                         The Dataset I am using is taken from the official website of the French state data.gouv. You can access the resource at this <a href="https://www.data.gouv.fr/fr/datasets/consommation-quotidienne-brute/">Link</a>.
-                        This Dataset presents gas consumption at an hourly rate for the two largest suppliers to the french network: GRTgaz and Teréga.
+                        This Dataset presents gas consumption at an hourly rate for the two largest suppliers to the French network: GRTgaz and Teréga.
                         Data are expressed in MW. 
-                        Just note that the website mentions that data for the years 2021 to 2024 are in intermediate status, so may be subject to modification in the future. 
+                        Just note that the website mentions that data for the years 2021 to 2024 are in intermediate status, so may be subject to modifications in the future. 
                     </p>
                 </div>
-                <h2 class="secondary-title">importing the necessary packages and load the dataset</h2>                
+                <h2 class="secondary-title">Importing the necessary packages and load the dataset</h2>                
                 <div class="code-block">
                     <pre><code class="language-python">
 import numpy as np
@@ -79,12 +79,12 @@ px.line(df, df["Date"], df["Total_gas_consumption"])
                     </code></pre>
                 </div>
                 <div class="inside-image">
-                    <img src="../../annex/annex_project2/graph_initial_situation.png", alt="graphic of the initial situation">
+                    <img src="../../annex/annex_project2/plotly_plot.png", alt="graphic of the initial situation">
                 </div>
                 <div class="inside-text">
                     <p>
-                        The datas seem to follow a seasonality on a yearly basis, which is quit logic for the consumption of gaz.
-                        When we look closer to the dataset by zooming, we see a clear drop of energy consumption every year between May and September, which corresponds to the Summer.
+                        Data seem to follow a seasonality on a yearly basis, which is quit logic for the consumption of gaz.
+                        When we look closer to the dataset by zooming in, we see a clear drop of energy consumption every year between May and September, which corresponds to the Summer.
                         The highest energy consumption is generally between November and March which corresponds to the Winter. 
                         We are also observing some exceptional outliers since 2020 at the beginning of the year, but as they continue to appear each year,
                         we are assuming that thay become regular datas to take into consideration. <br> <br>
@@ -130,10 +130,6 @@ def create_features(df):
     df["month"] = df.index.month
     df["quarter"] = df.index.quarter
     df["year"] = df.index.year
-    #Creates lag columns in a DataFrameshangover list
-    #lagged_features = [df["Consommation_totale_gaz"].shift(lag).rename(f"lags_{lag}") for lag in range(1, 25)]   
-    # Concatenates all columns at once
-    #df = pd.concat([df] + lagged_features, axis=1)
     return df
 
 def add_lags(df, col):
@@ -157,10 +153,10 @@ df = df.dropna()
                     <p>
                         The df.info() method indicates that the DataFrame uses 6.1 MB of memory to store the data.<br>
                         <ul>
-                            <li>int8 can store integers between -128 and 127</li>
-                            <li>int16 can store integers between -32,768 and 32,767</li>
-                            <li>int32 can store integer between roughly -1,000,000,000 and 1,000,000,000</li>
-                            <li>int64 can store integers between roughly -1,000,000,000,000,000,000 and 1,000,000,000,000,000,000</li>
+                            <li>int8 can store integers between -128 and 127.</li>
+                            <li>int16 can store integers between -32,768 and 32,767.</li>
+                            <li>int32 can store integer between roughly -1,000,000,000 and 1,000,000,000.</li>
+                            <li>int64 can store integers between roughly -1,000,000,000,000,000,000 and 1,000,000,000,000,000,000.</li>
                         </ul>
                     </p>
                 </div>
@@ -260,7 +256,6 @@ y_pred_tuned = model_tuned.predict(X_test)
 y_pred_tuned = np.clip(y_pred_tuned, 0, None) #all values inferior to 0 are 0
 
 print(f"MAE: {mean_absolute_error(y_test, y_pred_tuned):,.2f}".replace(",", " "))
-print(f"RMSE: {np.sqrt(mean_squared_error(y_test, y_pred_tuned)):,.2f}".replace(",", " "))
 print(f"r2_score: {r2_score(y_test, y_pred_tuned):.2f}")
                     </code></pre>
                 </div>
@@ -268,10 +263,11 @@ print(f"r2_score: {r2_score(y_test, y_pred_tuned):.2f}")
                     <p>
                         I implemented some important parameters. Here are a few of them : <br>
                         <ul>
-                            <li>n_estimators: it controls the number of trees in the model</li>
-                            <li>max_depth: it manages the depth of each tree. the deeper the tree, the more complex the model, but also the more prone to overfitting</li>
+                            <li>n_estimators: it controls the number of trees in the model.</li>
+                            <li>max_depth: it manages the depth of each tree. the deeper the tree, the more complex the model, but also the more prone to overfitting.</li>
                             <li>learning_rate: as xgboost follows a gradient boosting strategy in which each tree corrects the precedent one, the learning_rate determines at which rate the next tree will correct the precedent one.</li>
-                            <li>subsample: set to 0.8, each tree will be computed only 80% of the dataset. A random 80% of the dataset is chosen for each tree. This parameter prevents overfitting</li>
+                            <li>subsample: set to 0.8, each tree will be computed only 80% of the dataset. A random 80% of the dataset is chosen for each tree. This parameter prevents overfitting and helps generalize the model to unseen data.</li>
+                            <li>colsample_bytree: It works like the subsample parameter but on the columns of the dataset, that is to say on the features used to build each tree.</li>
                             <li>early_stopping_rounds: it's also a paramete to prevent overtraining. It defines the stopping of the model after 100 iterations (in our case) without improvement.</li>
                         </ul>
                         With this model I obtained the following metrics which are much better.
@@ -292,7 +288,7 @@ r2_score: 0.76
                 </div>
                 <div class="code-block">
                     <pre><code class="language-python">
-def search_best_parameter(n_estimators: int, learning_rate: float, max_depth: int, n:int, n_jobs: int, model):
+def search_best_parameter(n_estimators: list, learning_rate: list, max_depth: list, n: int, n_jobs: int, model):
     """
     Find the best parameters for the model by optimizing n_estimators, learning_rate and max_depth
     """
@@ -329,8 +325,10 @@ search_best_parameter(n_estimators=n_estimators, learning_rate=learning_rate, ma
                     <pre><code class="language-python">
 model_tuned.set_params(n_estimators =3000, max_depth = 1, learning_rate = 0.1)
 model_tuned.fit(X_train, y_train, eval_set = [(X_train, y_train), (X_test, y_test)], verbose=100)
+
 y_pred_tuned_final = model_tuned.predict(X_test)
 y_pred_tuned_final = np.clip(y_pred_tuned_final, 0, None) #All values inferior to 0 become 0
+
 print(f"MAE: {mean_absolute_error(y_test, y_pred_tuned_final):,.2f}")
 print(f"r2_score: {r2_score(y_test, y_pred_tuned_final):.2f}")
                     </code></pre>
