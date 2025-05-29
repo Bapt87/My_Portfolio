@@ -163,6 +163,9 @@ df = df.dropna()
                 <div class="code-block">
                     <pre><code class="language-python">
 def set_Dtypes(df):
+    """
+    This function optimizes Dtypes of the Series. It sets the Dtypes with the minimum of bits required without losing any data.
+    """
     df = df.copy()
     df["Total_gas_consumption"] = df["Total_gas_consumption"].astype('int32')
     df["hour"] = df["hour"].astype('int8')
