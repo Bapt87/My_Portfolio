@@ -20,7 +20,7 @@ This website presents:
 
 ## 📎 Resume & Links
 
-- [My Resume (PDF)](annex/Resume_Baptiste_Henin.pdf)
+- [My Resume (PDF)](annex/annex_index/Resume_Baptiste_Henin.pdf)
 - [My LinkedIn](https://www.linkedin.com/in/baptiste-henin/?locale=en_US)
 
 ## 🛠️ Stack used to build my Portfolio
