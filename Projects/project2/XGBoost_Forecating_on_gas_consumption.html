@@ -467,12 +467,19 @@ model_tuned.save_model("model_xgboost.json")
                     </code></pre>
                 </div>
                 <h2 class="secondary-title">Final interpretation of the forecasts</h2>
-
                 <div class="inside-text">
                     <p>
                         The forecasts given by XGBoost follow the same seasonality we have for the past 10 years.
                         Despite the seasonality, we can observ that consumption is declining overall.
                         Indeed, whereas 10 years ago values vary from 100,000 to 140,000 during winters, the values vary now from 80,000 to 100,000 during winters and it tends to decrease even more progressively. 
+                    </p>
+                </div>
+                <h2 class="secondary-title">What I've learnt with this project</h2>
+                <div class="inside-text">
+                    <p>
+                        Thanks to this project, I learnt how to clean efficiently a Dataset taken from an external source.
+                        I also learnt how to create meaningful features to train a complex XGBoost model with relatively advanced parameters which I could optimise.
+                        Another thing I learnt was how to optimise the data types of my DataFrame series to increase the model's speed.
                     </p>
                 </div>
             </div>
