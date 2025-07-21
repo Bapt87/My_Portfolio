@@ -1,0 +1,6 @@
+requests>=2.32.4
+bs4>=0.0.2
+pandas>=2.3.0
+psycopg2>=2.9.10
+pyarrow>=20.0.0
+python-dotenv>=1.1.1
