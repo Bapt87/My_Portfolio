@@ -14,8 +14,8 @@
             <div class="header-bottom-row">
                 <div class="header-text">
                     <p>
-                        The aim of this project is to scrape road traffic data updated every 30 minutes in Rennes and to analyse and display it on a Power BI dashboard.
-                        In order to complete this task, I am going to use a script to scrape data, another to clean these data and concatenate them into a single file.
+                        The aim of this project is to scrappe road traffic data updated every 30 minutes in Rennes and to analyse and display it on a Power BI dashboard.
+                        In order to complete this task, I am going to use a script to scrappe data, another to clean these data and concatenate them into a single file.
                         Finally, I will store all these data in a PostgreSQL Database. You can find all scripts and the Power BI dashboard on my GitHub repositery <a href="Markov_chains_Tesla_stocks.ipynb">here</a>.
                     </p>
                 </div>
@@ -26,21 +26,232 @@
         </header>
         <main>
             <div class="corps-article">
-
-                <h2 class="secondary-title"></h2>
-
+                <h2 class="secondary-title">Scrapping data</h2>
+                <div class="inside-text">
+                    Firstly, I went to the website data.rennesmetropole.fr which provides real-time traffic data for Rennes.
+                    which provides real-time traffic data for Rennes. The data is updated every 4 minutes, but no historical data is kept.
+                    The challenge is therefore to retrieve historical data over a certain period of time using a script that will retrieve this dataset every 30 minutes.
+                    So, I created a first python script named data_scraping.py containing the following code :
+                </div>
                 <div class="code-block">
                     <pre><code class="language-python">
+import requests
+from bs4 import BeautifulSoup
+import time
+from datetime import datetime
+ 
+
+# Function to download the csv file of the road traffic in Rennes
+def get_csv_file(url_page):
+    """
+    Function to download the csv file of the road traffic in Rennes
+    """
+    headers = {
+        "User-Agent": "Mozilla/5.0"
+    }
+    # Get the html page
+    try:
+        response = requests.get(url_page, headers=headers)
+        if response.status_code == 200:
+            print(f"✅ OK: {url_page}")
+        else:
+            print("❌ invalid url")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+    try:
+        soup = BeautifulSoup(response.text, "html.parser")
+        link_tag = soup.find("a", href=lambda href: href and "TP_FCD_AT.csv" in href)
+        print("✅ HTML page downloaded successfully")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+    # Find the CSV link
+    if link_tag:
+        csv_url = link_tag["href"]
+        print(f"CSV link found : {csv_url}")
+
+        # Download the csv file
+        csv_response = requests.get(csv_url)
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        filename = f"C:/Users/henin/OneDrive/Documents/Coding/My Portfolio/Projects/project4/data/raw_data/Rennes_road_traffic{timestamp}.csv"
+        with open(filename, "wb") as f:
+            f.write(csv_response.content)
+        print("✅ File succesfully download")
+    else:
+        print("❌ CSV link not found")
+
+    return csv_url
+
+
+get_csv_file(url_page="https://dkan.autoroutes-trafic.fr/?q=dataset/donn%C3%A9es-trafic-rennes-m%C3%A9tropole")                
                     </code></pre>
                 </div>
+                <div class="inside-text">
+                    The script is composed of one function get_csv_file. First of all, I use the request librairy to get the url page of data.rennesmetropole.fr. I use a sequence try except to prevent any error at each step of my script.
+                    Here, I want to be sure that the status code of the scrapped code is 200 to go on.
+                    Then, I wrap the scrapped page in a beautifulsoup object.
+                    The last part of the script involves assigning the current time at which the scrapped dataset was scrapped and saving it in the raw_data folder.
+                    To do this, I define the path to the folder and then use the open function to download the file in csv format.
+                    Finally, I call the function I've just created with the correct url.
+                </div>
+                <br>
+                <div class="inside-text">
+                    Then I created a task on my computer using the window task scheduler and ran this script every 30 minutes for 24 hours.
+                    Initially, I wanted to run this script for a week but I realised that it would be too energy and storage consuming and I didn't have the necessary conditions at home to let it run for 1 week without breaking it.
+                </div>
+                <h2 class="secondary-title">Concatenating and cleaning data</h2>
+                <div class="inside-text">
+                    After retreiving all data every 30 minutes on 24 hours, I must clean these data and concatenate these files into a single one.
+                    That is why I created another python script named Concatenating_and_cleaning_data.py which aims to do that job. The code for this script is the following :
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+import pandas as pd
+import os
+from glob import glob
 
+def concatenate_and_clean_csv_files(folder_path):
+    """
+    Get all the csv files, concatenate them and clean them in order to get at the end a concatenated and clean file"""
+    # 2. Get all csv files in this folder
+    csv_files = glob(os.path.join(folder_path, "*.csv"))
+    # 3. Read and concatenate all the files
+    dfs = []
+    for file in csv_files:
+        try:
+            df = pd.read_csv(file, sep=";")
+            df = df.loc[0:199] # Only keep the 200 first LocationReference
+            dfs.append(df)  # Add each DataFrame to the list dfs.
+        except Exception as e:
+            print(f"Error with {file} : {e}")
+
+    # 4. Concatenate all DataFrames line by line
+    if dfs:
+        combined_df = pd.concat(dfs, axis=0, ignore_index=True)
+        # drop potential duplicates
+        combined_df = combined_df.drop_duplicates()
+        # Clean columns names
+        combined_df.columns = combined_df.columns.str.strip()
+        # Define the Dtypes of the series
+        combined_df["datetime"] = pd.to_datetime(combined_df["datetime"])
+        for column in ["averageVehicleSpeed", "travelTime", "travelTimeReliability", "vehicleProbeMeasurement"] :
+            combined_df[column] = combined_df[column].astype("int16")
+
+        # 6. save in a parquet file
+        combined_df.to_parquet(r"C:\Users\henin\OneDrive\Documents\Coding\My Portfolio\Projects\project4\data\Concatenated_file\final_concatenated_file.parquet", index=False, engine="pyarrow")
+        print("✅ Concatenated file updated")
+    else:
+        print("❌ No CSV file found.")
+    return None
+
+concatenate_and_clean_csv_files(folder_path="C:/Users/henin/OneDrive/Documents/Coding/My Portfolio/Projects/project4/data/raw_data")              
+                    </code></pre>
+                </div>
+                <div class="inside-text">
+                    To carry out this work, I use the pandas library (clean and concatenate), os and glob (manage access paths).
+                    I'm building a single concatenate_and_clean_csv_files function that will perform all these tasks.
+                    Firstly, using the os and glob libraries, I retrieve the path where all the csv files are stored.
+                    Using a for loop, I read all the csv files one by one and simply retrieve the first 200 lines of each file.
+                    Indeed, there are more than 2000 lines in each file and each line corresponds to a location which calculates the speed of vehicles and other metrics.
+                    So I keep only the first 200 lines for my analysis.
+                    <br><br>
+                    After allocating all these files in a list, I concatenate all these DataFrames using the pd.concat function.
+                    Then I perform a few clean-up actions, such as deleting identical rows if there are any, cleaning up the column names and defining suitable Dtypes for each column.
+                    Finally, I save this DataFrame containing all my concatenated data in a parquet file, as this file format is much less demanding in terms of storage and retains the Dtypes of the columns in my DataFrame.
+                    At the end of the script, I call my function to execute it and give the right acces path. 
+                </div>
+                <h2 class="secondary-title">Injecting the data into a PostgreSQL Database</h2>
+                <div class="inside-text">
+                    For this project, I also wanted to store my datas in a PostgreSQL Database (even if I could do without it for this particular project).
+                    To do it, I created my last python script named injecting_to_PostgresSQL.py in which I used the python psycopg2 librairy in order to connect my postgreSQL Database to my python script and write directly SQL queries from there.
+                    The first step is to create a SQL Database on a server. Once done, I collected all the connection data for these databases in an .env file hidden in a .gitignore folder.
+                    Then, I used load_dotenv from the dotenv python library which allows me to get acces to my connection data stored in the .env file. hiding and protecting my connection data is important to avoid any leaks or hak of my data.
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+import psycopg2 as pg2
+import pandas as pd
+import os
+from dotenv import load_dotenv
+
+load_dotenv(dotenv_path='C:/Users/henin/OneDrive/Documents/Coding/My Portfolio/Projects/project4/.gitignore/.env')
+
+try:
+    conn = pg2.connect(
+        database=os.getenv("DB_NAME"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        host=os.getenv("DB_HOST"),
+        port=os.getenv("DB_PORT")
+    )
+    print("✅ Successful connection")
+except Exception as e:
+    print("❌ Error :", e)
+                    </code></pre>
+                </div>
+                <div class="inside-text">
+                    After connecting the Database to the python script, I created a cursor variable which I could use to write queries form this python script. 
+                    Thus, I write a query to create a empty table road_traffic_Rennes with all the the corresponding columns. 
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+try :
+    cur = conn.cursor()
+    cur.execute(
+        "CREATE TABLE IF NOT EXISTS road_traffic_Rennes(" \
+        "datetime TIMESTAMP WITH TIME ZONE NOT NULL," \
+        "predefinedLocationReference VARCHAR(50) NOT NULL," \
+        "averageVehicleSpeed SMALLINT," \
+        "travelTime SMALLINT," \
+        "travelTimeReliability SMALLINT," \
+        "trafficStatus VARCHAR(50) NOT NULL," \
+        "vehicleProbeMeasurement SMALLINT" \
+        ")"
+    )
+except Exception as e:
+    print("Database creation error :", e)
+    raise
+                    </code></pre>
+                </div>
+                <div class="inside-text">
+                    Then, I read my parquet file containing all datas and with the help of .iterrows() I can write a query which insert all lines of my parquet file into my PostgreSQL Database. 
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+try :
+    df = pd.read_parquet(r"C:\Users\henin\OneDrive\Documents\Coding\My Portfolio\Projects\project4\data\Concatenated_file\final_concatenated_file.parquet", engine="pyarrow")
+except Exception as e:
+    print("Parquet file read error :", e)
+    raise
+
+try :
+    for _, row in df.iterrows():
+        cur.execute(
+            "INSERT INTO road_traffic_Rennes (datetime, predefinedLocationReference, averageVehicleSpeed, travelTime, travelTimeReliability, trafficStatus, vehicleProbeMeasurement)" \
+            "VALUES" \
+            "(%s, %s, %s, %s, %s, %s, %s);",
+            (row['datetime'], row['predefinedLocationReference'], int(row['averageVehicleSpeed']), int(row['travelTime']), int(row['travelTimeReliability']), row['trafficStatus'], int(row['vehicleProbeMeasurement']))
+        )
+except Exception as e:
+    print("Error sending requests :", e)
+    raise   
+                    </code></pre>
+                </div>
+                <div class="inside-text">
+                    Finally, I commit all these changes and close the connections
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+# Commit and close
+conn.commit()
+cur.close()
+conn.close()
+                    </code></pre>
+                </div>
                 <div class="inside-image">
                     <img src="../../annex/annex_project3/Graph_TESLA_stock_prices.png", alt="Visual representation of the TESLA stock prices">
                 </div>     
-
-                <div class="inside-text">
-                </div>
-
 
 
 
