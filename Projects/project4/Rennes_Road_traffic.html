@@ -26,9 +26,48 @@
         </header>
         <main>
             <div class="corps-article">
+                <h2 class="secondary-title">Setting up the environment</h2>
+                <div class="inside-text">
+                    Before beginning the project, I set up my work environment. For this project, I am going to use a virtual environment and install all needed python packages on it. 
+                    To create a virtual environnement, I open cmd, go to the location where python 3.13.2 is installed and run this command : 
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+python -m venv road_traffic_project
+                    </code></pre>
+                </div>
+                <div class="inside-text">
+                    So, I named my virtual environment road_traffic_project. Then to activate this virtual environment I go to road_traffic_project/Scripts and run 
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+activate
+                    </code></pre>
+                </div>
+                <div class="inside-text">
+                    In order to install on it all what is necessary in a simple way, I gathered all needed python librairies in a file named requirements.txt and which look like like :
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+requests>=2.32.4
+bs4>=0.0.2
+pandas>=2.3.0
+psycopg2>=2.9.10
+pyarrow>=20.0.0
+python-dotenv>=1.1.1
+                    </code></pre>
+                </div>
+                <div class="inside-text">
+                    I run the following and my working environnement is now ready (the -r flag is what allows me to install librairies directly from a texte file)
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-python">
+pip install -r requirements.txt
+                    </code></pre>
+                </div>
                 <h2 class="secondary-title">Scrapping data</h2>
                 <div class="inside-text">
-                    Firstly, I went to the website data.rennesmetropole.fr which provides real-time traffic data for Rennes.
+                    I went to the website data.rennesmetropole.fr which provides real-time traffic data for Rennes.
                     which provides real-time traffic data for Rennes. The data is updated every 4 minutes, but no historical data is kept.
                     The challenge is therefore to retrieve historical data over a certain period of time using a script that will retrieve this dataset every 30 minutes.
                     So, I created a first python script named data_scraping.py containing the following code :
@@ -249,11 +288,28 @@ cur.close()
 conn.close()
                     </code></pre>
                 </div>
+                <h2 class="secondary-title">building the Power BI dashboard</h2>
+                <div class="inside-text">
+                    once all my data has been added to my PostgreSQL database, I linked this database as a data source in import mode to my Power BI document.
+                    On my Power BI document, I chose to build a report page to analyse the data I retrieved using my different scripts.
+                    I inserted a segment in the top right-hand corner and a search bar in the top left-hand corner to filter according to the location for which we wanted to study the data.
+                    I then created a graph showing the evolution of the average speed according to the time of day.
+                    To the left of this graph is an analysis of the average travel time according to the traffic status.
+                    This graph can be viewed dynamically using a graph view or a table view. This has been built using a dynamic bookmark.
+                    On the bottom line we find two final graphs: the one on the right studies the average travel time as a function of the time of day, while the one on the left shows us the reliability of the average travel time calculation.
+                    On the data.rennesmetropole.fr website, it is not clearly indicated what the figures in the traveltimereliability column represent, but in any case, the higher the figure, the more reliable the calculation.
+                </div>
                 <div class="inside-image">
-                    <img src="../../annex/annex_project3/Graph_TESLA_stock_prices.png", alt="Visual representation of the TESLA stock prices">
+                    <img src="../../annex/annex_project4/screenshot_dashbord_interactif.png", alt="Visual representation of the TESLA stock prices">
                 </div>     
-
-
+                <h2 class="secondary-title">What I've learnt thanks to this project</h2>
+                <div class="inside-text">
+                    Thanks to this project, I was able to learn how to use python libraries dedicated to scraping (request and beautifulsoup).
+                    I also learned how to create, use and update a PostgreSQL database using psycopg2 and link it with a Power BI document.
+                    Finally, this project has taught me a lot about how to organise myself.
+                    I learned how to create a virtual environment and install all the libraries I needed on it.
+                    I was able to understand how to use an .env file and a .gitignore folder to protect my connection data and my data.
+                </div>
 
 
             </div>
