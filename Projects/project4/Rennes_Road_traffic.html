@@ -5,18 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
     <link rel="stylesheet" href="../../css/stylesheet_projects.css">
-    <title>Scrapping the road traffic data of Rennes and display them on a Power BI dashboard</title>
+    <title>Scraping the road traffic data of Rennes and display them on a Power BI dashboard</title>
 </head>
 <body class="whole-body">
     <div class="project-container">
         <header class="header-context">
-            <h1 class="header-title">Scrapping the road traffic data of Rennes and display them on a Power BI dashboard</h1>
+            <h1 class="header-title">Scrape the road traffic data of Rennes and display them on a Power BI dashboard</h1>
             <div class="header-bottom-row">
                 <div class="header-text">
                     <p>
-                        The aim of this project is to scrappe road traffic data updated every 30 minutes in Rennes and to analyse and display it on a Power BI dashboard.
-                        In order to complete this task, I am going to use a script to scrappe data, another to clean these data and concatenate them into a single file.
-                        Finally, I will store all these data in a PostgreSQL Database. You can find all scripts and the Power BI dashboard on my GitHub repositery <a href="https://github.com/Bapt87/My_Portfolio/tree/main/Projects/project4">here</a>.
+                        The aim of this project is to scrape road traffic data updated every 30 minutes in Rennes and to analyse and display it on a Power BI dashboard.
+                        In order to complete this task, I am going to use a script to scrape data, another to clean these data and concatenate them into a single file.
+                        Finally, I will store all these data in a PostgreSQL Database. You can find the complete project on my GitHub repository <a href="https://github.com/Bapt87/My_Portfolio/tree/main/Projects/project4">here</a>.
                     </p>
                 </div>
                 <div class="header-image">
@@ -29,7 +29,7 @@
                 <h2 class="secondary-title">Setting up the environment</h2>
                 <div class="inside-text">
                     Before beginning the project, I set up my work environment. For this project, I am going to use a virtual environment and install all needed python packages on it. 
-                    To create a virtual environnement, I open cmd, go to the location where python 3.13.2 is installed and run this command : 
+                    To create a virtual environnement, I open the cmd, go to the location where python 3.13.2 is installed and run this command : 
                 </div>
                 <div class="code-block">
                     <pre><code class="language-python">
@@ -45,7 +45,7 @@ activate
                     </code></pre>
                 </div>
                 <div class="inside-text">
-                    In order to install on it all what is necessary in a simple way, I gathered all needed python librairies in a file named requirements.txt and which look like like :
+                    In order to install on it all what is necessary in a simple way, I gathered all needed python librairies in a file named requirements.txt and which looks like like :
                 </div>
                 <div class="code-block">
                     <pre><code class="language-python">
@@ -58,17 +58,17 @@ python-dotenv>=1.1.1
                     </code></pre>
                 </div>
                 <div class="inside-text">
-                    I run the following and my working environnement is now ready (the -r flag is what allows me to install librairies directly from a texte file)
+                    I run the following and my working environnement is now ready (the -r flag is what allows me to install librairies directly from a text file)
                 </div>
                 <div class="code-block">
                     <pre><code class="language-python">
 pip install -r requirements.txt
                     </code></pre>
                 </div>
-                <h2 class="secondary-title">Scrapping data</h2>
+                <h2 class="secondary-title">Scraping data</h2>
                 <div class="inside-text">
                     I went to the website data.rennesmetropole.fr which provides real-time traffic data for Rennes.
-                    which provides real-time traffic data for Rennes. The data is updated every 4 minutes, but no historical data is kept.
+                    The data is updated every 4 minutes, but no historical data is kept.
                     The challenge is therefore to retrieve historical data over a certain period of time using a script that will retrieve this dataset every 30 minutes.
                     So, I created a first python script named data_scraping.py containing the following code :
                 </div>
@@ -127,10 +127,11 @@ get_csv_file(url_page="https://dkan.autoroutes-trafic.fr/?q=dataset/donn%C3%A9es
                     </code></pre>
                 </div>
                 <div class="inside-text">
-                    The script is composed of one function get_csv_file. First of all, I use the request librairy to get the url page of data.rennesmetropole.fr. I use a sequence try except to prevent any error at each step of my script.
-                    Here, I want to be sure that the status code of the scrapped code is 200 to go on.
-                    Then, I wrap the scrapped page in a beautifulsoup object.
-                    The last part of the script involves assigning the current time at which the scrapped dataset was scrapped and saving it in the raw_data folder.
+                    The script is composed of one function get_csv_file. First of all, I use the request librairy to get the url page of data.rennesmetropole.fr. 
+                    I use a sequence "try except" to prevent any error at each step of my script.
+                    Here, I want to be sure that the status code of the scraped code is 200 to go on.
+                    Then, I wrap the scraped page in a beautifulsoup object.
+                    The last part of the script involves assigning the current time at which the dataset was scraped and saving it in the raw_data folder.
                     To do this, I define the path to the folder and then use the open function to download the file in csv format.
                     Finally, I call the function I've just created with the correct url.
                 </div>
@@ -141,7 +142,7 @@ get_csv_file(url_page="https://dkan.autoroutes-trafic.fr/?q=dataset/donn%C3%A9es
                 </div>
                 <h2 class="secondary-title">Concatenating and cleaning data</h2>
                 <div class="inside-text">
-                    After retreiving all data every 30 minutes on 24 hours, I must clean these data and concatenate these files into a single one.
+                    After retrieving all data every 30 minutes for 24 hours, I must clean these data and concatenate these files into a single one.
                     That is why I created another python script named Concatenating_and_cleaning_data.py which aims to do that job. The code for this script is the following :
                 </div>
                 <div class="code-block">
@@ -188,14 +189,14 @@ concatenate_and_clean_csv_files(folder_path="C:/Users/henin/OneDrive/Documents/C
                     </code></pre>
                 </div>
                 <div class="inside-text">
-                    To carry out this work, I use the pandas library (clean and concatenate), os and glob (manage access paths).
+                    To carry out this work, I used the pandas library (clean and concatenate), os and glob (manage access paths).
                     I'm building a single concatenate_and_clean_csv_files function that will perform all these tasks.
                     Firstly, using the os and glob libraries, I retrieve the path where all the csv files are stored.
                     Using a for loop, I read all the csv files one by one and simply retrieve the first 200 lines of each file.
                     Indeed, there are more than 2000 lines in each file and each line corresponds to a location which calculates the speed of vehicles and other metrics.
                     So I keep only the first 200 lines for my analysis.
                     <br><br>
-                    After allocating all these files in a list, I concatenate all these DataFrames using the pd.concat function.
+                    After allocating all these files in a list, I concatenated all these DataFrames using the pd.concat function.
                     Then I perform a few clean-up actions, such as deleting identical rows if there are any, cleaning up the column names and defining suitable Dtypes for each column.
                     Finally, I save this DataFrame containing all my concatenated data in a parquet file, as this file format is much less demanding in terms of storage and retains the Dtypes of the columns in my DataFrame.
                     At the end of the script, I call my function to execute it and give the right acces path. 
@@ -205,7 +206,8 @@ concatenate_and_clean_csv_files(folder_path="C:/Users/henin/OneDrive/Documents/C
                     For this project, I also wanted to store my datas in a PostgreSQL Database (even if I could do without it for this particular project).
                     To do it, I created my last python script named injecting_to_PostgresSQL.py in which I used the python psycopg2 librairy in order to connect my postgreSQL Database to my python script and write directly SQL queries from there.
                     The first step is to create a SQL Database on a server. Once done, I collected all the connection data for these databases in an .env file hidden in a .gitignore folder.
-                    Then, I used load_dotenv from the dotenv python library which allows me to get acces to my connection data stored in the .env file. hiding and protecting my connection data is important to avoid any leaks or hak of my data.
+                    Then, I used load_dotenv from the dotenv python library which allows me to get acces to my connection data stored in the .env file.
+                    Hiding and protecting my connection data is important to avoid any leaks or hak of my data.
                 </div>
                 <div class="code-block">
                     <pre><code class="language-python">
@@ -230,8 +232,8 @@ except Exception as e:
                     </code></pre>
                 </div>
                 <div class="inside-text">
-                    After connecting the Database to the python script, I created a cursor variable which I could use to write queries form this python script. 
-                    Thus, I write a query to create a empty table road_traffic_Rennes with all the the corresponding columns. 
+                    After connecting the Database to the python script, I created a cursor variable which I could use to write queries from this python script. 
+                    Thus, I wrote a query to create a empty table road_traffic_Rennes with all the the corresponding columns. 
                 </div>
                 <div class="code-block">
                     <pre><code class="language-python">
@@ -254,7 +256,7 @@ except Exception as e:
                     </code></pre>
                 </div>
                 <div class="inside-text">
-                    Then, I read my parquet file containing all datas and with the help of .iterrows() I can write a query which insert all lines of my parquet file into my PostgreSQL Database. 
+                    Then, I read my parquet file containing all datas and with the help of .iterrows() I can write a query which inserts all lines of my parquet file into my PostgreSQL Database. 
                 </div>
                 <div class="code-block">
                     <pre><code class="language-python">
@@ -278,7 +280,7 @@ except Exception as e:
                     </code></pre>
                 </div>
                 <div class="inside-text">
-                    Finally, I commit all these changes and close the connections
+                    Finally, I commited all these changes and closed the connections
                 </div>
                 <div class="code-block">
                     <pre><code class="language-python">
@@ -288,16 +290,16 @@ cur.close()
 conn.close()
                     </code></pre>
                 </div>
-                <h2 class="secondary-title">building the Power BI dashboard</h2>
+                <h2 class="secondary-title">Building the Power BI dashboard</h2>
                 <div class="inside-text">
-                    once all my data has been added to my PostgreSQL database, I linked this database as a data source in import mode to my Power BI document.
+                    Once all my data has been added to my PostgreSQL database, I linked this database as a data source in import mode to my Power BI document.
                     On my Power BI document, I chose to build a report page to analyse the data I retrieved using my different scripts.
-                    I inserted a segment in the top right-hand corner and a search bar in the top left-hand corner to filter according to the location for which we wanted to study the data.
+                    I inserted a segment in the top right-hand corner and a search bar in the top left-hand corner to filter according to the location for which we want to study the data.
                     I then created a graph showing the evolution of the average speed according to the time of day.
                     To the left of this graph is an analysis of the average travel time according to the traffic status.
                     This graph can be viewed dynamically using a graph view or a table view. This has been built using a dynamic bookmark.
                     On the bottom line we find two final graphs: the one on the right studies the average travel time as a function of the time of day, while the one on the left shows us the reliability of the average travel time calculation.
-                    On the data.rennesmetropole.fr website, it is not clearly indicated what the figures in the traveltimereliability column represent, but in any case, the higher the figure, the more reliable the calculation.
+                    On the data.rennesmetropole.fr website, it is not clearly indicated what the figures in the traveltimereliability column represents, but in any case, the higher the figure, the more reliable the calculation.
                 </div>
                 <div class="inside-image">
                     <img src="../../annex/annex_project4/screenshot_dashbord_interactif.png", alt="Visual representation of the TESLA stock prices">
@@ -305,9 +307,9 @@ conn.close()
                 <h2 class="secondary-title">What I've learnt thanks to this project</h2>
                 <div class="inside-text">
                     Thanks to this project, I was able to learn how to use python libraries dedicated to scraping (request and beautifulsoup).
-                    I also learned how to create, use and update a PostgreSQL database using psycopg2 and link it with a Power BI document.
+                    I also learnt how to create, use and update a PostgreSQL database using psycopg2 and link it with a Power BI document.
                     Finally, this project has taught me a lot about how to organise myself.
-                    I learned how to create a virtual environment and install all the libraries I needed on it.
+                    I learnt how to create a virtual environment and install all the libraries I needed on it.
                     I was able to understand how to use an .env file and a .gitignore folder to protect my connection data and my data.
                 </div>
 
