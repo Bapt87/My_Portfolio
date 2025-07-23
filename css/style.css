@@ -3,29 +3,31 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-  }
-  
-  /* === Corps général === */
-  body {
+}
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* === Corps général === */
+body {
     font-family: 'Segoe UI', Arial, sans-serif;
-    background-color: #f1f1f1; /* gris très clair */
+    background-color: #f1f1f1;
     color: #2c2c2c;
-  }
-  
-  /* === HEADER === */
-  header {
-    background-color: #f1f1f1; /* gris très clair */
-    padding: 20px 40px 0px;
-  }
-  
-  /* === NAVIGATION BAR === */
-  nav {
+}
+
+/* === HEADER === */
+header {
+    background-color: #f1f1f1;
+    padding: 20px 40px 0;
+}
+
+/* === NAVIGATION BAR === */
+nav {
     text-align: center;
-    margin-bottom: 50px;
-    margin-top: -20px;
-  }
-  
-  nav a {
+    margin: -20px 0 50px;
+}
+nav a {
     display: inline-block;
     background-color: #1e3a5f;
     color: #f4f4f4;
@@ -35,284 +37,285 @@
     margin: 0 10px;
     font-size: 1rem;
     transition: transform 0.2s ease, background-color 0.2s ease;
-  }
-  
-  nav a:hover {
+}
+nav a:hover {
     transform: scale(1.07);
     background-color: #345f8c;
-  }
-  
-  /* === STRUCTURE DU CONTENU DU HEADER === */
-  .header-content {
+}
+
+/* === STRUCTURE DU CONTENU DU HEADER === */
+.header-content {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     gap: 60px;
     margin-top: 40px;
-  }
-  
-  /* === PARTIE TEXTE À GAUCHE === */
-  .header-text {
+}
+.header-text {
     flex: 2;
-  }
-  
-  /* TITRE H1 CENTRÉ DANS UN BANDEAU */
-  h1 {
+}
+
+/* === IMAGE À DROITE === */
+
+.header-photo {
+  margin-top: 0px;
+  margin-right: 40px;
+  margin-bottom: 40px;
+
+}
+.header-photo img {
+  max-width: auto;
+  max-height: 650px;
+  width: 600px;
+  /*height: auto;
+  border-radius: 12px;*/
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* TITRES */
+h1 {
     font-size: 6rem;
     color: #1e3a5f;
     text-align: center;
-    background-color: #e6e0d4; /* couleur douce qui se marie avec le header */
-    border: 2px solid #d0c8b8; /* contour léger */
+    background-color: #e6e0d4;
+    border: 2px solid #d0c8b8;
     padding: 20px;
     border-radius: 12px;
-    margin-bottom: 0px;
-  }
-  
-  /* SOUS-TITRE H2 ÉLÉGANT */
-  .header-text h2 {
+    margin-bottom: 0;
+}
+.header-text h2 {
     font-family: 'Georgia', serif;
     font-size: 2.5rem;
     color: #2f4c73;
     margin-bottom: 15px;
     text-align: left;
-  }
-  
-  /* === LISTES === */
-  .header-text ul {
-    list-style-type: none;
+}
+
+/* LISTES */
+.header-text ul {
+    list-style: none;
     margin-left: 30px;
-  }
-  
-  .header-text li {
+}
+.header-text li {
     margin-bottom: 10px;
     font-size: 1.05rem;
     line-height: 1.6;
     color: #3e3e3e;
     position: relative;
-  }
-  
-  /* PUCES PERSONNALISÉES */
-  .header-text ul > li::before {
+}
+.header-text ul > li::before {
     content: "●";
     color: #1e3a5f;
     font-size: 0.7rem;
     position: absolute;
     left: -20px;
     top: 6px;
-  }
-  
-  .header-text ul ul > li::before {
+}
+.header-text ul ul > li::before {
     content: "○";
     color: #1e3a5f;
     font-size: 0.7rem;
     left: -20px;
     top: 6px;
-  }
-  
-  /* === IMAGE À DROITE === */
-  .header-photo {
-    margin-top: 0px;
-    margin-right: 40px;
-    margin-bottom: 40px;
-  }
-  .header-photo img {
-    max-width: auto;
-    max-height: 650px;
-    width: 600px;
-    /*height: auto;
-    border-radius: 12px;*/
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-  }
-  
-  /* === SECTIONS PRINCIPALES === */
-  main {
+}
+
+/* === SECTIONS PRINCIPALES === */
+main {
     max-width: 900px;
     margin: 60px auto;
     padding: 40px 30px;
-    background-color: #ffffff;
+    background-color: #fff;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
     border-radius: 8px;
-  }
-  
-  /* TITRES DES SECTIONS */
-  main h2 {
+}
+main h2 {
     font-size: 1.8rem;
     color: #0d355e;
     margin-bottom: 15px;
     position: relative;
     font-weight: bold;
-  }
-  
-  /* LIGNE DE SÉPARATION SOUS h2 */
-  main h2::after {
+}
+main h2::after {
     content: '';
     display: block;
     width: 100%;
     height: 2px;
     background-color: #0d355e;
     margin-top: 6px;
-  }
-  
-  /* LISTES DANS LE MAIN */
-  main ul {
-    list-style-type: disc;
+}
+main ul {
+    list-style: disc;
     padding-left: 30px;
     margin-bottom: 25px;
-  }
-  
-  main ul ul {
-    list-style-type: circle;
-    margin-top: 8px;
-    margin-bottom: 8px;
+}
+main ul ul {
+    list-style: circle;
+    margin: 8px 0;
     padding-left: 20px;
-  }
-  
-  /* LIENS */
-  main a {
+}
+main a {
     color: #1a5da3;
     text-decoration: none;
     font-weight: 500;
-  }
-  
-  main a:hover {
+}
+main a:hover {
     text-decoration: underline;
-  }
-  
-  /* PARAGRAPHES */
-  main p {
+}
+main p {
     margin-bottom: 20px;
     font-size: 1.05rem;
     line-height: 1.6;
     color: #333;
-  }
+}
 
+/* ILLUSTRATIONS */
 .illustrated-paragraph {
-  display: flex;
-  align-items: flex-start;
-  gap: 40px;
-  margin-bottom: 40px;
+    display: flex;
+    align-items: flex-start;
+    gap: 40px;
+    margin-bottom: 40px;
 }
-
 .text-left {
-  flex: 1;
+    flex: 1;
 }
-
 .illustration-right img {
-  width: 300px;
-  height: auto;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    width: 300px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-/* == Layout Project == */
+/* PROJETS */
 .one-project {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  padding: 20px;
-  background-color: #f5f5f5;
-  border-radius: 10px;
-  box-shadow: 0 0 10px #94938f;
-  margin-bottom: 40px;
-  text-decoration: none;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  color: inherit;
-  text-decoration: none !important;
-  cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+    background-color: #f5f5f5;
+    border-radius: 10px;
+    box-shadow: 0 0 10px #94938f;
+    margin-bottom: 40px;
+    text-decoration: none !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-
 .one-project:hover {
-  transform: scale(1.02);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-  text-decoration: none !important;
+    transform: scale(1.02);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
-
-/* Titre */
 .titre-project {
-  font-size: 1.4rem;
-  font-weight: bold;
-  color: #1e3a5f;
-  margin: 0;
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #1e3a5f;
+    margin: 0;
 }
-
-/* Contenu aligné */
 .project-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 30px;
 }
-
-/* Description */
-.description-project {
-  flex: 2;
-  font-size: 1rem;
-  line-height: 1.6;
-  color: #333;
-}
-
-/* Image */
-.image-project {
-  flex: 1;
-  max-width: 300px;
-  height: auto;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-}
-
 .description-section {
-  flex: 2;
-  display: flex;
-  flex-direction: column;
+    flex: 2;
+    display: flex;
+    flex-direction: column;
 }
-
+.description-project {
+    flex: 2;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #333;
+}
 .tools-used {
-  margin-top: 10px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
-
 .tool-logo {
-  height: 35px;
-  width: auto;
-  opacity: 0.85;
-  transition: transform 0.2s ease;
+    height: 35px;
+    opacity: 0.85;
+    transition: transform 0.2s ease;
 }
-
 .tool-logo:hover {
-  transform: scale(1.1);
-  opacity: 1;
+    transform: scale(1.1);
+    opacity: 1;
+}
+.image-project {
+    flex: 1;
+    max-width: 300px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 /* === FOOTER === */
 footer {
-  background-color: #003366;
-  color: white;
-  text-align: center;
-  padding: 20px;
-  font-size: 0.9em;
+    background-color: #003366;
+    color: #fff;
+    text-align: center;
+    padding: 20px;
+    font-size: 0.9em;
 }
-
 .footer-container {
-  display: flex;
-  justify-content: center;
-  gap: 40px; /* espace horizontal entre les blocs */
-  flex-wrap: wrap; /* pour que ça passe en mobile */
-  align-items: center;
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+    align-items: center;
 }
-
 .footer-container p {
-  margin: 0;
+    margin: 0;
 }
-
 .footer-container a {
-  color: #ffffff;
-  text-decoration: none;
+    color: #fff;
+    text-decoration: none;
 }
-
 .footer-container a:hover {
-  text-decoration: underline;
+    text-decoration: underline;
 }
 
-  
+/* === RÉPONSIVE MOBILE === */
+@media (max-width: 768px) {
+    header {
+        padding: 20px;
+    }
+    nav a {
+        display: block;
+        margin: 10px auto;
+        padding: 10px 20px;
+        font-size: 0.9rem;
+    }
+    .header-content {
+        flex-direction: column;
+        gap: 20px;
+    }
+    .header-photo,
+    .header-text {
+        width: 100%;
+        margin: 0;
+    }
+    h1 {
+        font-size: 3rem;
+        padding: 15px;
+    }
+    main {
+        margin: 20px;
+        padding: 20px;
+    }
+    .illustrated-paragraph {
+        flex-direction: column;
+        gap: 20px;
+    }
+    .illustration-right img {
+        width: 100%;
+    }
+    .project-content {
+        flex-direction: column;
+        gap: 20px;
+    }
+    .image-project {
+        max-width: 100%;
+    }
+    .tools-used {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
