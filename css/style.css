@@ -313,6 +313,7 @@ footer {
     }
     .image-project {
         max-width: 100%;
+        height: 300px;
     }
     .tools-used {
         flex-wrap: wrap;
